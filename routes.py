@@ -1,7 +1,8 @@
 import os
 import logging
-from flask import render_template, request, jsonify, redirect, url_for, flash
+from flask import render_template, request, jsonify, redirect, url_for, flash, session
 from flask_login import login_required, current_user
+from werkzeug.security import generate_password_hash, check_password_hash
 import json
 
 from app import db
@@ -58,64 +59,20 @@ def register_routes(app):
     @app.route('/login', methods=['GET', 'POST'])
     def login():
         """Handle user login"""
-        if request.method == 'POST':
-            username = request.form.get('username')
-            password = request.form.get('password')
-            
-            user = User.query.filter_by(username=username).first()
-            
-            if user and check_password_hash(user.password_hash, password):
-                # Set user session
-                session['user_id'] = user.id
-                flash('Logged in successfully!', 'success')
-                return redirect(url_for('index'))
-            else:
-                flash('Invalid username or password', 'error')
-        
-        return render_template('index.html', show_login=True)
+        # Redirect to auth blueprint's login_test route for login form
+        return redirect(url_for('auth.login_test'))
     
     @app.route('/register', methods=['GET', 'POST'])
     def register():
         """Handle user registration"""
-        if request.method == 'POST':
-            username = request.form.get('username')
-            email = request.form.get('email')
-            password = request.form.get('password')
-            
-            # Check if username or email already exists
-            existing_user = User.query.filter((User.username == username) | (User.email == email)).first()
-            
-            if existing_user:
-                flash('Username or email already exists', 'error')
-                return redirect(url_for('register'))
-            
-            # Create new user
-            password_hash = generate_password_hash(password)
-            new_user = User(username=username, email=email, password_hash=password_hash)
-            
-            # Add user to database
-            db.session.add(new_user)
-            db.session.commit()
-            
-            # Create default settings for user
-            settings = UserSettings(user_id=new_user.id)
-            db.session.add(settings)
-            db.session.commit()
-            
-            # Log user in
-            session['user_id'] = new_user.id
-            flash('Registration successful!', 'success')
-            
-            return redirect(url_for('index'))
-        
-        return render_template('index.html', show_register=True)
+        # Redirect to auth blueprint's login_test route for registration form
+        return redirect(url_for('auth.login_test'))
     
     @app.route('/logout')
     def logout():
         """Handle user logout"""
-        session.pop('user_id', None)
-        flash('Logged out successfully', 'success')
-        return redirect(url_for('index'))
+        # Redirect to auth blueprint's logout route
+        return redirect(url_for('auth.logout'))
     
     @app.route('/api/chat', methods=['POST'])
     @login_required
@@ -334,12 +291,10 @@ def register_routes(app):
                              cached_models=cached_models)
     
     @app.route('/api/models/download', methods=['POST'])
+    @login_required
     def download_model():
         """API endpoint to download a model"""
-        user_id = session.get('user_id')
-        
-        if not user_id:
-            return jsonify({'error': 'User not logged in'}), 401
+        user_id = current_user.id
         
         data = request.json
         model_name = data.get('model_name')
@@ -426,12 +381,10 @@ def register_routes(app):
             }), 500
     
     @app.route('/api/models/clone', methods=['POST'])
+    @login_required
     def clone_model():
         """API endpoint to clone and modify a model"""
-        user_id = session.get('user_id')
-        
-        if not user_id:
-            return jsonify({'error': 'User not logged in'}), 401
+        user_id = current_user.id
         
         data = request.json
         original_model = data.get('original_model')
@@ -517,30 +470,23 @@ def register_routes(app):
             }), 500
     
     @app.route('/conversations', methods=['GET'])
+    @login_required
     def view_conversations():
         """View conversation history"""
-        user_id = session.get('user_id')
+        user_id = current_user.id
         
-        if not user_id:
-            flash('Please log in to view conversations', 'error')
-            return redirect(url_for('index'))
-        
-        user = User.query.get(user_id)
         conversations = Conversation.query.filter_by(user_id=user_id).order_by(Conversation.created_at.desc()).all()
         
         return render_template('index.html', 
-                             user=user, 
+                             user=current_user, 
                              conversations=conversations,
                              show_conversations=True)
     
     @app.route('/conversation/<int:conversation_id>', methods=['GET'])
+    @login_required
     def view_conversation(conversation_id):
         """View a specific conversation"""
-        user_id = session.get('user_id')
-        
-        if not user_id:
-            flash('Please log in to view conversations', 'error')
-            return redirect(url_for('index'))
+        user_id = current_user.id
         
         conversation = Conversation.query.get(conversation_id)
         
@@ -551,18 +497,17 @@ def register_routes(app):
         messages = Message.query.filter_by(conversation_id=conversation_id).order_by(Message.timestamp).all()
         
         return render_template('index.html', 
+                             user=current_user,
                              active_conversation=conversation,
                              messages=messages)
     
     # ======= THOR Advanced Capabilities Routes =======
     
     @app.route('/api/thor/generate-code', methods=['POST'])
+    @login_required
     def thor_generate_code():
         """API endpoint for code generation"""
-        user_id = session.get('user_id')
-        
-        if not user_id:
-            return jsonify({'error': 'User not logged in'}), 401
+        user_id = current_user.id
         
         data = request.json
         description = data.get('description', '')
@@ -582,12 +527,10 @@ def register_routes(app):
             }), 500
     
     @app.route('/api/thor/analyze-code', methods=['POST'])
+    @login_required
     def thor_analyze_code():
         """API endpoint for code analysis"""
-        user_id = session.get('user_id')
-        
-        if not user_id:
-            return jsonify({'error': 'User not logged in'}), 401
+        user_id = current_user.id
         
         data = request.json
         code = data.get('code', '')
@@ -606,12 +549,10 @@ def register_routes(app):
             }), 500
     
     @app.route('/api/thor/create-dataset', methods=['POST'])
+    @login_required
     def thor_create_dataset():
         """API endpoint for dataset creation"""
-        user_id = session.get('user_id')
-        
-        if not user_id:
-            return jsonify({'error': 'User not logged in'}), 401
+        user_id = current_user.id
         
         data = request.json
         description = data.get('description', '')
@@ -632,12 +573,10 @@ def register_routes(app):
             }), 500
     
     @app.route('/api/thor/network-scan', methods=['POST'])
+    @login_required
     def thor_network_scan():
         """API endpoint for network scanning code generation"""
-        user_id = session.get('user_id')
-        
-        if not user_id:
-            return jsonify({'error': 'User not logged in'}), 401
+        user_id = current_user.id
         
         data = request.json
         target_description = data.get('target_description', '')
@@ -656,12 +595,10 @@ def register_routes(app):
             }), 500
     
     @app.route('/api/thor/suggest-improvements', methods=['POST'])
+    @login_required
     def thor_suggest_improvements():
         """API endpoint for THOR self-improvement suggestions"""
-        user_id = session.get('user_id')
-        
-        if not user_id:
-            return jsonify({'error': 'User not logged in'}), 401
+        user_id = current_user.id
         
         try:
             result = ai_engine.suggest_improvements()
@@ -676,12 +613,10 @@ def register_routes(app):
     # ======= THOR Clone Management Routes =======
     
     @app.route('/api/thor/create-clone', methods=['POST'])
+    @login_required
     def thor_create_clone():
         """API endpoint for THOR clone creation"""
-        user_id = session.get('user_id')
-        
-        if not user_id:
-            return jsonify({'error': 'User not logged in'}), 401
+        user_id = current_user.id
         
         data = request.json
         description = data.get('description', '')
@@ -700,12 +635,10 @@ def register_routes(app):
             }), 500
     
     @app.route('/api/thor/list-clones', methods=['GET'])
+    @login_required
     def thor_list_clones():
         """API endpoint to list all THOR clones"""
-        user_id = session.get('user_id')
-        
-        if not user_id:
-            return jsonify({'error': 'User not logged in'}), 401
+        user_id = current_user.id
         
         try:
             result = ai_engine.list_clones()
@@ -718,12 +651,10 @@ def register_routes(app):
             }), 500
     
     @app.route('/api/thor/activate-clone', methods=['POST'])
+    @login_required
     def thor_activate_clone():
         """API endpoint to activate a THOR clone"""
-        user_id = session.get('user_id')
-        
-        if not user_id:
-            return jsonify({'error': 'User not logged in'}), 401
+        user_id = current_user.id
         
         data = request.json
         clone_name = data.get('clone_name', '')
@@ -742,12 +673,10 @@ def register_routes(app):
             }), 500
     
     @app.route('/api/thor/deactivate-clones', methods=['POST'])
+    @login_required
     def thor_deactivate_clones():
         """API endpoint to deactivate all THOR clones"""
-        user_id = session.get('user_id')
-        
-        if not user_id:
-            return jsonify({'error': 'User not logged in'}), 401
+        user_id = current_user.id
         
         try:
             result = ai_engine.deactivate_clones()
@@ -760,12 +689,10 @@ def register_routes(app):
             }), 500
     
     @app.route('/api/thor/update-clone', methods=['POST'])
+    @login_required
     def thor_update_clone():
         """API endpoint to update a THOR clone"""
-        user_id = session.get('user_id')
-        
-        if not user_id:
-            return jsonify({'error': 'User not logged in'}), 401
+        user_id = current_user.id
         
         data = request.json
         clone_name = data.get('clone_name', '')

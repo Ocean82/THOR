@@ -26,7 +26,7 @@
                     <li class="nav-item">
                         <a class="nav-link" href="/">Home</a>
                     </li>
-                    {% if session.get('user_id') %}
+                    {% if current_user.is_authenticated %}
                         <li class="nav-item">
                             <a class="nav-link" href="/conversations">Conversations</a>
                         </li>
