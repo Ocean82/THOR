@@ -6,6 +6,7 @@ import html
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import DeclarativeBase
+from flask_login import LoginManager
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
@@ -20,6 +21,16 @@ db = SQLAlchemy(model_class=Base)
 # Create the Flask app
 app = Flask(__name__)
 app.secret_key = os.environ.get("SESSION_SECRET", "dev_secret_key")
+
+# Initialize Flask-Login
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'
+
+@login_manager.user_loader
+def load_user(user_id):
+    from models import User
+    return User.query.get(int(user_id))
 
 # Add custom Jinja filters
 @app.template_filter('nl2br')
@@ -46,9 +57,13 @@ with app.app_context():
     # Import models here to avoid circular imports
     import models
     from routes import register_routes
+    from auth import auth_bp
     
     # Register the routes to the app
     register_routes(app)
+    
+    # Register the auth blueprint
+    app.register_blueprint(auth_bp)
     
     # Create database tables if they don't exist
     db.create_all()

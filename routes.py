@@ -1,7 +1,7 @@
 import os
 import logging
-from flask import render_template, request, jsonify, redirect, url_for, flash, session
-from werkzeug.security import generate_password_hash, check_password_hash
+from flask import render_template, request, jsonify, redirect, url_for, flash
+from flask_login import login_required, current_user
 import json
 
 from app import db
@@ -34,26 +34,21 @@ def register_routes(app):
     def index():
         """Render the main page"""
         # Check if user is logged in
-        user_id = session.get('user_id')
-        
-        if user_id:
-            # Get user data
-            user = User.query.get(user_id)
-            
+        if current_user.is_authenticated:
             # Get conversation history
-            conversations = Conversation.query.filter_by(user_id=user_id).order_by(Conversation.created_at.desc()).all()
+            conversations = Conversation.query.filter_by(user_id=current_user.id).order_by(Conversation.created_at.desc()).all()
             
             # Get user settings
-            settings = UserSettings.query.filter_by(user_id=user_id).first()
+            settings = UserSettings.query.filter_by(user_id=current_user.id).first()
             
             if not settings:
                 # Create default settings if none exist
-                settings = UserSettings(user_id=user_id)
+                settings = UserSettings(user_id=current_user.id)
                 db.session.add(settings)
                 db.session.commit()
             
             return render_template('index.html', 
-                                  user=user, 
+                                  user=current_user, 
                                   conversations=conversations,
                                   settings=settings)
         else:
@@ -123,19 +118,15 @@ def register_routes(app):
         return redirect(url_for('index'))
     
     @app.route('/api/chat', methods=['POST'])
+    @login_required
     def chat():
         """API endpoint for chat interactions"""
         data = request.json
         message = data.get('message', '')
         conversation_id = data.get('conversation_id')
         
-        user_id = session.get('user_id')
-        
-        if not user_id:
-            return jsonify({
-                'error': 'User not logged in',
-                'response': 'Please log in to continue the conversation.'
-            }), 401
+        # Using current_user from Flask-Login
+        user_id = current_user.id
         
         # Get user settings
         settings = UserSettings.query.filter_by(user_id=user_id).first()
@@ -222,6 +213,7 @@ def register_routes(app):
         })
     
     @app.route('/api/permission', methods=['POST'])
+    @login_required
     def handle_permission():
         """Handle permission requests for restricted operations"""
         data = request.json
@@ -229,10 +221,8 @@ def register_routes(app):
         operation = data.get('operation', '')
         conversation_id = data.get('conversation_id')
         
-        user_id = session.get('user_id')
-        
-        if not user_id:
-            return jsonify({'error': 'User not logged in'}), 401
+        # Using current_user from Flask-Login
+        user_id = current_user.id
         
         if permission_granted:
             # Get user settings and temporarily disable permission requirement
@@ -302,15 +292,11 @@ def register_routes(app):
             })
     
     @app.route('/settings', methods=['GET', 'POST'])
+    @login_required
     def settings():
         """Handle user settings page"""
-        user_id = session.get('user_id')
-        
-        if not user_id:
-            flash('Please log in to access settings', 'error')
-            return redirect(url_for('index'))
-        
-        user = User.query.get(user_id)
+        # Using current_user from Flask-Login
+        user_id = current_user.id
         user_settings = UserSettings.query.filter_by(user_id=user_id).first()
         
         if not user_settings:
@@ -342,7 +328,7 @@ def register_routes(app):
         cached_models = model_integrator.list_available_models(source="cached")
         
         return render_template('settings.html', 
-                             user=user, 
+                             user=current_user, 
                              settings=user_settings,
                              available_models=available_models,
                              cached_models=cached_models)

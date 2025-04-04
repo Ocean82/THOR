@@ -1,6 +1,7 @@
 from app import db
 from datetime import datetime
 import json
+from flask_login import UserMixin
 
 class ThorClone(db.Model):
     """Model for Thor clones in the database"""
@@ -27,7 +28,7 @@ class ThorClone(db.Model):
     def __repr__(self):
         return f"<ThorClone {self.clone_name}>"
 
-class User(db.Model):
+class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
@@ -39,19 +40,6 @@ class User(db.Model):
     
     # One-to-one relationship with settings
     settings = db.relationship('UserSettings', backref='user', uselist=False)
-    
-    # Flask-Login compatibility methods
-    def is_authenticated(self):
-        return True
-        
-    def is_active(self):
-        return True
-        
-    def is_anonymous(self):
-        return False
-        
-    def get_id(self):
-        return str(self.id)
     
     def __repr__(self):
         return f'<User {self.username}>'
