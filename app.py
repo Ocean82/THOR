@@ -7,6 +7,7 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import DeclarativeBase
 from flask_login import LoginManager
+from flask_wtf.csrf import CSRFProtect
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
@@ -26,6 +27,10 @@ app.secret_key = os.environ.get("SESSION_SECRET", "dev_secret_key")
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'auth.login_test'
+
+# Initialize CSRF Protection
+csrf = CSRFProtect()
+csrf.init_app(app)
 
 @login_manager.user_loader
 def load_user(user_id):
