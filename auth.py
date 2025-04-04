@@ -13,12 +13,28 @@ logger = logging.getLogger(__name__)
 # Create Blueprint
 auth_bp = Blueprint('auth', __name__)
 
-@auth_bp.route('/login_test')
+@auth_bp.route('/login_test', methods=['GET', 'POST'])
 def login_test():
-    """Render test login page"""
+    """Render test login page and handle form submissions"""
     if current_user.is_authenticated:
         return redirect(url_for('index'))
-    return render_template('login_test.html')
+    
+    from forms import LoginForm, RegistrationForm
+    login_form = LoginForm()
+    registration_form = RegistrationForm()
+    
+    if request.method == 'POST':
+        form_type = request.form.get('form_type')
+        
+        if form_type == 'login' and login_form.validate_on_submit():
+            return redirect(url_for('auth.login'))
+            
+        elif form_type == 'register' and registration_form.validate_on_submit():
+            return redirect(url_for('auth.register'))
+    
+    return render_template('login_test.html', 
+                         login_form=login_form,
+                         registration_form=registration_form)
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():

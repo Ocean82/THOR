@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -27,37 +28,61 @@
                         <h3>THOR AI System Login</h3>
                     </div>
                     <div class="card-body">
-                        <form action="{{ url_for('auth.login') }}" method="post">
-                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <form method="post">
+                            {{ login_form.csrf_token }}
+                            <input type="hidden" name="form_type" value="login">
+                            
                             <div class="mb-3">
                                 <label for="username" class="form-label">Username</label>
-                                <input type="text" class="form-control" id="username" name="username" required>
+                                {{ login_form.username(class="form-control", id="username") }}
+                                {% for error in login_form.username.errors %}
+                                    <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
                             </div>
+                            
                             <div class="mb-3">
                                 <label for="password" class="form-label">Password</label>
-                                <input type="password" class="form-control" id="password" name="password" required>
+                                {{ login_form.password(class="form-control", id="password") }}
+                                {% for error in login_form.password.errors %}
+                                    <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
                             </div>
-                            <button type="submit" class="btn btn-primary">Login</button>
+                            
+                            {{ login_form.submit(class="btn btn-primary") }}
                         </form>
                         
                         <hr>
                         
                         <h4 class="mt-4">Register New User</h4>
-                        <form action="{{ url_for('auth.register') }}" method="post">
-                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <form method="post">
+                            {{ registration_form.csrf_token }}
+                            <input type="hidden" name="form_type" value="register">
+                            
                             <div class="mb-3">
                                 <label for="reg_username" class="form-label">Username</label>
-                                <input type="text" class="form-control" id="reg_username" name="username" required>
+                                {{ registration_form.username(class="form-control", id="reg_username") }}
+                                {% for error in registration_form.username.errors %}
+                                    <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
                             </div>
+                            
                             <div class="mb-3">
                                 <label for="reg_email" class="form-label">Email</label>
-                                <input type="email" class="form-control" id="reg_email" name="email" required>
+                                {{ registration_form.email(class="form-control", id="reg_email") }}
+                                {% for error in registration_form.email.errors %}
+                                    <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
                             </div>
+                            
                             <div class="mb-3">
                                 <label for="reg_password" class="form-label">Password</label>
-                                <input type="password" class="form-control" id="reg_password" name="password" required>
+                                {{ registration_form.password(class="form-control", id="reg_password") }}
+                                {% for error in registration_form.password.errors %}
+                                    <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
                             </div>
-                            <button type="submit" class="btn btn-success">Register</button>
+                            
+                            {{ registration_form.submit(class="btn btn-success") }}
                         </form>
                     </div>
                 </div>
