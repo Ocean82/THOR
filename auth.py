@@ -1,5 +1,5 @@
 import logging
-from flask import Blueprint, render_template, redirect, url_for, flash, request
+from flask import Blueprint, render_template, redirect, url_for, flash, request, session
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -30,17 +30,21 @@ def login():
         username = request.form.get('username')
         password = request.form.get('password')
         
+        logger.debug(f"Login attempt for user: {username}")
+        
         user = User.query.filter_by(username=username).first()
         
         if user and check_password_hash(user.password_hash, password):
             # Login user with Flask-Login
             login_user(user)
+            logger.debug(f"User {username} logged in successfully")
             flash('Logged in successfully!', 'success')
             
             # Redirect to the next page or index
             next_page = request.args.get('next')
             return redirect(next_page or url_for('index'))
         else:
+            logger.debug(f"Login failed for user: {username}")
             flash('Invalid username or password', 'danger')
     
     return redirect(url_for('auth.login_test'))
@@ -56,6 +60,8 @@ def register():
         username = request.form.get('username')
         email = request.form.get('email')
         password = request.form.get('password')
+        
+        logger.debug(f"Registration attempt for user: {username}, email: {email}")
         
         if not username or not email or not password:
             flash('All fields are required', 'danger')
@@ -80,6 +86,8 @@ def register():
         settings = UserSettings(user_id=new_user.id)
         db.session.add(settings)
         db.session.commit()
+        
+        logger.debug(f"User {username} registered successfully")
         
         # Log user in
         login_user(new_user)
