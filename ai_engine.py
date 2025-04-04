@@ -19,10 +19,10 @@ class AIEngine:
         # Basic conversation templates
         self.responses = {
             "greeting": [
-                "Hello! How can I assist you today?",
-                "Hi there! What can I help you with?",
-                "Greetings! How may I be of service?",
-                "Welcome! What would you like to know?"
+                "Hello! I'm THOR. How can I assist you today?",
+                "Hi there! THOR AI at your service. What can I help you with?",
+                "Greetings! This is THOR. How may I be of service?",
+                "Welcome to THOR AI! What would you like to know?"
             ],
             "farewell": [
                 "Goodbye! Feel free to return if you have more questions.",
@@ -43,18 +43,18 @@ class AIEngine:
                 "Here's a code snippet that might help: "
             ],
             "fallback": [
-                "I'm still learning about that topic. Can you tell me more?",
-                "That's an interesting request. Let me think about how I can help with that.",
-                "I'm processing that request. Could you provide more details?",
-                "I'm designed to help with various tasks. Can you be more specific about what you need?"
+                "As THOR, I'm still learning about that topic. Can you tell me more?",
+                "That's an interesting request. Let me think about how THOR can help with that.",
+                "THOR is processing that request. Could you provide more details?",
+                "I'm THOR, designed to help with various tasks. Can you be more specific about what you need?"
             ]
         }
         
         # Model and system information
         self.model_info = {
-            "name": "Simple AI Engine",
+            "name": "THOR AI Engine",
             "version": "1.0",
-            "capabilities": ["basic conversation", "permission requests", "safety filters"]
+            "capabilities": ["basic conversation", "permission requests", "safety filters", "code generation"]
         }
     
     def generate_response(self, 
