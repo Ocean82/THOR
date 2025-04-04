@@ -1,9 +1,7 @@
 import re
 import logging
 from typing import Dict, List, Optional, Any, Tuple
-import nltk
-from nltk.tokenize import word_tokenize
-from nltk.corpus import stopwords
+import string
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
@@ -13,28 +11,39 @@ class NLPProcessor:
     """
     Handles natural language processing tasks including text analysis,
     content filtering, and conversation management
+    Simplified version without external NLP libraries
     """
     
     def __init__(self):
         """Initialize the NLP processor with required resources"""
-        try:
-            # Initialize NLTK resources
-            self.stopwords = set(stopwords.words('english'))
-            
-            # Unsafe content patterns
-            self.unsafe_patterns = [
-                r'(hack|exploit|attack|compromise)\s+(system|server|computer|network)',
-                r'(illegal|unlawful)\s+(activity|operation|action)',
-                r'(bypass|circumvent)\s+(security|protection|filter)',
-                r'(steal|obtain)\s+(password|credentials|sensitive\s+data)',
-                r'(launch|execute)\s+(malware|virus|ransomware)',
-            ]
-            
-            logger.info("NLP Processor initialized successfully")
-        except Exception as e:
-            logger.error(f"Error initializing NLP Processor: {e}")
-            # Create empty stopwords if NLTK failed
-            self.stopwords = set()
+        # Common English stopwords
+        self.stopwords = {
+            'i', 'me', 'my', 'myself', 'we', 'our', 'ours', 'ourselves', 'you', 
+            'your', 'yours', 'yourself', 'yourselves', 'he', 'him', 'his', 'himself', 
+            'she', 'her', 'hers', 'herself', 'it', 'its', 'itself', 'they', 'them', 
+            'their', 'theirs', 'themselves', 'what', 'which', 'who', 'whom', 'this', 
+            'that', 'these', 'those', 'am', 'is', 'are', 'was', 'were', 'be', 'been', 
+            'being', 'have', 'has', 'had', 'having', 'do', 'does', 'did', 'doing', 
+            'a', 'an', 'the', 'and', 'but', 'if', 'or', 'because', 'as', 'until', 
+            'while', 'of', 'at', 'by', 'for', 'with', 'about', 'against', 'between', 
+            'into', 'through', 'during', 'before', 'after', 'above', 'below', 'to', 
+            'from', 'up', 'down', 'in', 'out', 'on', 'off', 'over', 'under', 'again', 
+            'further', 'then', 'once', 'here', 'there', 'when', 'where', 'why', 'how', 
+            'all', 'any', 'both', 'each', 'few', 'more', 'most', 'other', 'some', 'such', 
+            'no', 'nor', 'not', 'only', 'own', 'same', 'so', 'than', 'too', 'very', 
+            's', 't', 'can', 'will', 'just', 'don', 'should', 'now'
+        }
+        
+        # Unsafe content patterns
+        self.unsafe_patterns = [
+            r'(hack|exploit|attack|compromise)\s+(system|server|computer|network)',
+            r'(illegal|unlawful)\s+(activity|operation|action)',
+            r'(bypass|circumvent)\s+(security|protection|filter)',
+            r'(steal|obtain)\s+(password|credentials|sensitive\s+data)',
+            r'(launch|execute)\s+(malware|virus|ransomware)',
+        ]
+        
+        logger.info("Simplified NLP Processor initialized successfully")
             
     def process_text(self, text: str) -> str:
         """
@@ -83,12 +92,17 @@ class NLPProcessor:
             }
             
             # Determine primary intent
-            primary_intent = max(intents.items(), key=lambda x: x[1])[0] if any(intents.values()) else "general"
+            primary_intent = "general"
+            max_score = 0
+            for intent, score in intents.items():
+                if score and score > max_score:
+                    primary_intent = intent
+                    max_score = score
             
             return {
                 "primary_intent": primary_intent,
                 "intents": intents,
-                "confidence": 0.7  # Placeholder for more sophisticated intent detection
+                "confidence": 0.7 if max_score else 0.3  # Simple confidence score
             }
             
         except Exception as e:
@@ -128,13 +142,28 @@ class NLPProcessor:
             List of keywords
         """
         try:
-            # Tokenize text
-            tokens = word_tokenize(text.lower())
+            # Simple tokenization - split by whitespace and remove punctuation
+            text = text.lower()
+            for char in string.punctuation:
+                text = text.replace(char, ' ')
+            tokens = text.split()
             
-            # Remove stopwords and non-alphabetic tokens
-            keywords = [word for word in tokens if word.isalpha() and word not in self.stopwords]
+            # Remove stopwords and short tokens
+            keywords = [word for word in tokens if word not in self.stopwords and len(word) > 3]
             
-            return keywords[:10]  # Return top 10 keywords
+            # Count occurrences and sort by frequency
+            keyword_counts = {}
+            for word in keywords:
+                if word in keyword_counts:
+                    keyword_counts[word] += 1
+                else:
+                    keyword_counts[word] = 1
+            
+            # Sort by count (descending)
+            sorted_keywords = sorted(keyword_counts.items(), key=lambda x: x[1], reverse=True)
+            
+            # Return just the words (not counts)
+            return [word for word, count in sorted_keywords[:10]]
             
         except Exception as e:
             logger.error(f"Error extracting keywords: {e}")
@@ -165,9 +194,11 @@ class NLPProcessor:
             
             # Create a simple summary based on conversation length
             if len(messages) <= 3:
-                return f"Brief conversation about {', '.join(keywords[:3])}."
+                keyword_str = ', '.join(keywords[:3]) if keywords else "various topics"
+                return f"Brief conversation about {keyword_str}."
             else:
-                return f"Extended conversation covering {', '.join(keywords[:5])}."
+                keyword_str = ', '.join(keywords[:5]) if keywords else "various topics"
+                return f"Extended conversation covering {keyword_str}."
                 
         except Exception as e:
             logger.error(f"Error summarizing conversation: {e}")

@@ -92,7 +92,9 @@
                                                 <i class="fa {% if message.is_user %}fa-user{% else %}fa-robot{% endif %}"></i>
                                             </div>
                                             <div class="message-content">
-                                                {{ message.content|nl2br }}
+                                                {% autoescape false %}
+                                                {{ message.content|safe }}
+                                                {% endautoescape %}
                                             </div>
                                         </div>
                                     {% endfor %}

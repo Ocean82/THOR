@@ -1,0 +1,10 @@
+{
+  "name": "Simple AI",
+  "version": "1.0",
+  "description": "Basic rule-based AI model",
+  "capabilities": [
+    "conversation",
+    "text generation",
+    "intent recognition"
+  ]
+}

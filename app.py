@@ -1,5 +1,7 @@
 import os
 import logging
+import re
+import html
 
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
@@ -18,6 +20,15 @@ db = SQLAlchemy(model_class=Base)
 # Create the Flask app
 app = Flask(__name__)
 app.secret_key = os.environ.get("SESSION_SECRET", "dev_secret_key")
+
+# Add custom Jinja filters
+@app.template_filter('nl2br')
+def nl2br_filter(s):
+    """Convert newlines to <br> tags for HTML display"""
+    if s is None:
+        return ""
+    # Replace newlines with <br> tags
+    return s.replace('\n', '<br>')
 
 # Configure the SQLite database
 app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL", "sqlite:///ai_system.db")
