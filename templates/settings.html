@@ -1,0 +1,213 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-3">
+        <div class="list-group mb-4">
+            <a href="#general-settings" class="list-group-item list-group-item-action active">General Settings</a>
+            <a href="#model-settings" class="list-group-item list-group-item-action">Model Settings</a>
+            <a href="#advanced-settings" class="list-group-item list-group-item-action">Advanced Settings</a>
+            <a href="#model-management" class="list-group-item list-group-item-action">Model Management</a>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">User Info</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Username:</strong> {{ user.username }}</p>
+                <p><strong>Email:</strong> {{ user.email }}</p>
+                <p><strong>Joined:</strong> {{ user.created_at.strftime('%Y-%m-%d') }}</p>
+                <a href="/" class="btn btn-outline-primary btn-sm">Back to Chat</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-9">
+        <h2 class="mb-4">Settings</h2>
+        
+        <form id="settings-form" action="/settings" method="post">
+            <!-- General Settings -->
+            <div class="card settings-card" id="general-settings">
+                <div class="card-header">
+                    <h4>General Settings</h4>
+                </div>
+                <div class="card-body">
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" role="switch" id="content-filter" name="content_filter" 
+                            {% if settings.content_filter_enabled %}checked{% endif %}>
+                        <label class="form-check-label" for="content-filter">
+                            <strong>Content Filter</strong>
+                            <div class="text-muted">Filter potentially unsafe or harmful content from AI responses</div>
+                        </label>
+                    </div>
+                    
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" role="switch" id="ethics-check" name="ethics_check" 
+                            {% if settings.ethics_check_enabled %}checked{% endif %}>
+                        <label class="form-check-label" for="ethics-check">
+                            <strong>Ethics Check</strong>
+                            <div class="text-muted">Apply ethical guidelines to AI responses and behaviors</div>
+                        </label>
+                    </div>
+                    
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" role="switch" id="permission-required" name="permission_required" 
+                            {% if settings.permission_required %}checked{% endif %}>
+                        <label class="form-check-label" for="permission-required">
+                            <strong>Permission Required</strong>
+                            <div class="text-muted">Require your explicit permission for potentially sensitive operations</div>
+                        </label>
+                    </div>
+                    
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Warning:</strong> Disabling these safety features may result in the AI generating potentially unsafe, unethical, or harmful content. Use with caution.
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Model Settings -->
+            <div class="card settings-card" id="model-settings">
+                <div class="card-header">
+                    <h4>Model Settings</h4>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="preferred-model" class="form-label"><strong>Preferred Model</strong></label>
+                        <select class="form-select" id="preferred-model" name="preferred_model">
+                            <option value="gpt2" {% if settings.preferred_model == 'gpt2' %}selected{% endif %}>GPT-2 (Default)</option>
+                            <option value="distilgpt2" {% if settings.preferred_model == 'distilgpt2' %}selected{% endif %}>DistilGPT-2 (Faster)</option>
+                            <option value="EleutherAI/gpt-neo-125M" {% if settings.preferred_model == 'EleutherAI/gpt-neo-125M' %}selected{% endif %}>GPT-Neo (125M)</option>
+                            <option value="facebook/opt-125m" {% if settings.preferred_model == 'facebook/opt-125m' %}selected{% endif %}>OPT (125M)</option>
+                            
+                            {% for model in cached_models %}
+                                <option value="{{ model.name }}" {% if settings.preferred_model == model.name %}selected{% endif %}>
+                                    {{ model.name }} (Cached)
+                                </option>
+                            {% endfor %}
+                        </select>
+                        <div class="form-text">Select the AI model to use for generating responses</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Advanced Settings -->
+            <div class="card settings-card" id="advanced-settings">
+                <div class="card-header">
+                    <h4>Advanced Settings</h4>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="advanced-settings" class="form-label"><strong>Advanced Settings (JSON)</strong></label>
+                        <textarea class="form-control advanced-settings" id="advanced-settings" name="advanced_settings" rows="6">{{ settings.advanced_settings }}</textarea>
+                        <div class="form-text">Advanced settings in JSON format</div>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <strong>Example:</strong> 
+                        <pre><code>{
+  "max_tokens": 100,
+  "temperature": 0.7,
+  "top_p": 0.9,
+  "network_access": false
+}</code></pre>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4 mb-5">
+                <button type="reset" class="btn btn-outline-secondary me-md-2">Reset</button>
+                <button type="submit" class="btn btn-primary">Save Settings</button>
+            </div>
+        </form>
+        
+        <!-- Model Management -->
+        <div id="model-management">
+            <h3 class="mb-4">Model Management</h3>
+            
+            <!-- Download Model -->
+            <div class="card settings-card">
+                <div class="card-header">
+                    <h4>Download Model</h4>
+                </div>
+                <div class="card-body">
+                    <form id="download-model-form">
+                        <div class="mb-3">
+                            <label for="model-name" class="form-label"><strong>Model Name</strong></label>
+                            <input type="text" class="form-control" id="model-name" placeholder="e.g., gpt2, distilgpt2, EleutherAI/gpt-neo-125M">
+                            <div class="form-text">Enter the name of the model to download</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="model-source" class="form-label"><strong>Source</strong></label>
+                            <select class="form-select" id="model-source">
+                                <option value="huggingface" selected>Hugging Face</option>
+                                <option value="github">GitHub</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3" id="repo-url-container" style="display: none;">
+                            <label for="repo-url" class="form-label"><strong>Repository URL</strong></label>
+                            <input type="text" class="form-control" id="repo-url" placeholder="e.g., https://github.com/username/repository">
+                            <div class="form-text">Enter the GitHub repository URL</div>
+                        </div>
+                        
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">Download Model</button>
+                        </div>
+                        
+                        <div id="download-status"></div>
+                    </form>
+                    
+                    <script>
+                        // Show/hide repo URL field based on source selection
+                        document.getElementById('model-source').addEventListener('change', function() {
+                            const repoUrlContainer = document.getElementById('repo-url-container');
+                            repoUrlContainer.style.display = this.value === 'github' ? 'block' : 'none';
+                        });
+                    </script>
+                </div>
+            </div>
+            
+            <!-- Clone Model -->
+            <div class="card settings-card">
+                <div class="card-header">
+                    <h4>Clone and Modify Model</h4>
+                </div>
+                <div class="card-body">
+                    <form id="clone-model-form">
+                        <div class="mb-3">
+                            <label for="original-model" class="form-label"><strong>Original Model</strong></label>
+                            <select class="form-select" id="original-model">
+                                <option value="" selected disabled>Select a model to clone</option>
+                                {% for model in available_models %}
+                                    <option value="{{ model.name }}">{{ model.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="new-model-name" class="form-label"><strong>New Model Name</strong></label>
+                            <input type="text" class="form-control" id="new-model-name" placeholder="e.g., my-custom-gpt2">
+                            <div class="form-text">Enter a name for the cloned model</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="modifications" class="form-label"><strong>Modifications (Optional)</strong></label>
+                            <textarea class="form-control" id="modifications" rows="4" placeholder='{"parameter": "value"}'></textarea>
+                            <div class="form-text">Enter modifications as JSON (advanced users only)</div>
+                        </div>
+                        
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">Clone Model</button>
+                        </div>
+                        
+                        <div id="clone-status"></div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

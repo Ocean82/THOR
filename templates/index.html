@@ -1,0 +1,186 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% if session.get('user_id') %}
+    <!-- Logged-in view with chat interface -->
+    <div class="row">
+        <!-- Sidebar with conversations -->
+        <div class="col-md-3">
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Conversations</h5>
+                    <a href="/" class="btn btn-sm btn-primary">
+                        <i class="fas fa-plus"></i> New
+                    </a>
+                </div>
+                <div class="card-body p-0">
+                    <ul class="conversation-list">
+                        {% if conversations %}
+                            {% for conversation in conversations %}
+                                <li class="conversation-item {% if active_conversation and active_conversation.id == conversation.id %}active{% endif %}">
+                                    <a href="/conversation/{{ conversation.id }}" class="text-decoration-none text-reset d-block">
+                                        <div class="d-flex justify-content-between">
+                                            <span>{{ conversation.title }}</span>
+                                            <small class="text-muted">{{ conversation.created_at.strftime('%m/%d') }}</small>
+                                        </div>
+                                    </a>
+                                </li>
+                            {% endfor %}
+                        {% else %}
+                            <li class="conversation-item">
+                                <div class="text-center text-muted py-3">No conversations yet</div>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Quick settings -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Quick Settings</h5>
+                </div>
+                <div class="card-body">
+                    {% if user and user.settings %}
+                        <div class="form-check form-switch mb-2">
+                            <input class="form-check-input" type="checkbox" role="switch" id="content-filter-switch" 
+                                {% if user.settings.content_filter_enabled %}checked{% endif %} disabled>
+                            <label class="form-check-label" for="content-filter-switch">Content Filter</label>
+                        </div>
+                        <div class="form-check form-switch mb-2">
+                            <input class="form-check-input" type="checkbox" role="switch" id="ethics-check-switch" 
+                                {% if user.settings.ethics_check_enabled %}checked{% endif %} disabled>
+                            <label class="form-check-label" for="ethics-check-switch">Ethics Check</label>
+                        </div>
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input" type="checkbox" role="switch" id="permission-required-switch" 
+                                {% if user.settings.permission_required %}checked{% endif %} disabled>
+                            <label class="form-check-label" for="permission-required-switch">Permission Required</label>
+                        </div>
+                        <div class="d-grid">
+                            <a href="/settings" class="btn btn-sm btn-outline-primary">Change Settings</a>
+                        </div>
+                    {% else %}
+                        <p class="text-muted">Settings not available</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main chat area -->
+        <div class="col-md-9">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        {% if active_conversation %}
+                            {{ active_conversation.title }}
+                            <span class="badge bg-secondary">{{ active_conversation.id }}</span>
+                            <div id="active-conversation" data-conversation-id="{{ active_conversation.id }}" class="d-none"></div>
+                        {% else %}
+                            New Conversation
+                        {% endif %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="chat-container">
+                        <div class="chat-messages" id="chat-messages">
+                            {% if active_conversation and messages %}
+                                <div class="message-history">
+                                    {% for message in messages %}
+                                        <div class="message {% if message.is_user %}user-message{% else %}ai-message{% endif %}">
+                                            <div class="message-avatar">
+                                                <i class="fa {% if message.is_user %}fa-user{% else %}fa-robot{% endif %}"></i>
+                                            </div>
+                                            <div class="message-content">
+                                                {{ message.content|nl2br }}
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <div class="message ai-message">
+                                    <div class="message-avatar">
+                                        <i class="fa fa-robot"></i>
+                                    </div>
+                                    <div class="message-content">
+                                        Hello! I'm an advanced AI assistant. How can I help you today?
+                                    </div>
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Loading indicator -->
+                        <div id="loading-indicator" class="loading-indicator d-none">
+                            <div class="loading-dots">
+                                <span></span>
+                                <span></span>
+                                <span></span>
+                            </div>
+                        </div>
+                        
+                        <!-- Input area -->
+                        <form id="chat-form">
+                            <div class="chat-input">
+                                <textarea class="form-control" id="message-input" rows="2" placeholder="Type your message here..."></textarea>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-paper-plane"></i>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% else %}
+    <!-- Welcome page for non-logged-in users -->
+    <div class="welcome-container">
+        <div class="row justify-content-center">
+            <div class="col-md-8 text-center">
+                <h1 class="display-4 mb-4">Welcome to the Advanced AI System</h1>
+                <p class="lead mb-5">A powerful Python-based AI with NLP capabilities, external model integration, and user-controlled behavior settings.</p>
+                <div class="d-grid gap-2 d-md-flex justify-content-md-center mb-5">
+                    <button class="btn btn-primary btn-lg px-4 me-md-2" data-bs-toggle="modal" data-bs-target="#loginModal">Login</button>
+                    <button class="btn btn-outline-secondary btn-lg px-4" data-bs-toggle="modal" data-bs-target="#registerModal">Register</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row g-4 py-5">
+            <div class="col-md-4">
+                <div class="card feature-card">
+                    <div class="card-body text-center">
+                        <div class="feature-icon">
+                            <i class="fas fa-brain"></i>
+                        </div>
+                        <h3>NLP Capabilities</h3>
+                        <p>Advanced natural language processing enables understanding context, intent, and generating human-like responses.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card feature-card">
+                    <div class="card-body text-center">
+                        <div class="feature-icon">
+                            <i class="fas fa-sliders-h"></i>
+                        </div>
+                        <h3>User-Controlled Settings</h3>
+                        <p>Customize safety features, ethics checks, and model behavior according to your needs and preferences.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card feature-card">
+                    <div class="card-body text-center">
+                        <div class="feature-icon">
+                            <i class="fas fa-cloud-download-alt"></i>
+                        </div>
+                        <h3>Model Integration</h3>
+                        <p>Seamlessly integrate models from Hugging Face and GitHub, with the ability to clone and modify them.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endif %}
+{% endblock %}
