@@ -24,8 +24,12 @@ def login_test():
 def login():
     """Handle user login"""
     if current_user.is_authenticated:
+        logger.debug("User already authenticated, redirecting to index")
         return redirect(url_for('index'))
-        
+    
+    logger.debug(f"Login route accessed with method: {request.method}")
+    logger.debug(f"Request form data: {request.form}")
+    
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
