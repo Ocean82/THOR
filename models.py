@@ -2,6 +2,31 @@ from app import db
 from datetime import datetime
 import json
 
+class ThorClone(db.Model):
+    """Model for Thor clones in the database"""
+    id = db.Column(db.Integer, primary_key=True)
+    clone_name = db.Column(db.String(100), unique=True, nullable=False)
+    base_version = db.Column(db.String(100))
+    description = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    modified_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    is_active = db.Column(db.Boolean, default=False)
+    capabilities = db.Column(db.Text)  # JSON string of capabilities
+    
+    def get_capabilities(self):
+        """Parse and return capabilities as a dictionary"""
+        try:
+            return json.loads(self.capabilities) if self.capabilities else {}
+        except:
+            return {}
+    
+    def set_capabilities(self, capabilities_dict):
+        """Convert dictionary to JSON and store"""
+        self.capabilities = json.dumps(capabilities_dict)
+    
+    def __repr__(self):
+        return f"<ThorClone {self.clone_name}>"
+
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), unique=True, nullable=False)

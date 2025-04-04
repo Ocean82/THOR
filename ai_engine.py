@@ -2,7 +2,17 @@ import os
 import logging
 import random
 import re
+import json
+from datetime import datetime
 from typing import Dict, List, Tuple, Optional, Any
+
+# Import the OpenAI-based ThorAI
+try:
+    from thor_ai import ThorAI
+    from thor_clone_manager import ThorCloneManager
+    HAS_THOR_AI = True
+except ImportError:
+    HAS_THOR_AI = False
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
@@ -16,6 +26,18 @@ class AIEngine:
     
     def __init__(self):
         """Initialize the AI Engine with default settings"""
+        # Initialize ThorAI and CloneManager if available
+        self.thor_ai = None
+        self.clone_manager = None
+        
+        if HAS_THOR_AI and os.environ.get("OPENAI_API_KEY"):
+            try:
+                self.thor_ai = ThorAI()
+                self.clone_manager = ThorCloneManager()
+                logger.info("Advanced AI capabilities initialized with OpenAI integration")
+            except Exception as e:
+                logger.error(f"Failed to initialize advanced AI capabilities: {e}")
+        
         # Basic conversation templates
         self.responses = {
             "greeting": [
@@ -82,6 +104,18 @@ class AIEngine:
                 "testing concepts"
             ]
         }
+        
+        # Add advanced capabilities if available
+        if self.thor_ai:
+            self.model_info["capabilities"].extend([
+                "advanced code generation",
+                "code analysis",
+                "dataset creation",
+                "network scanning",
+                "self-improvement",
+                "self-cloning"
+            ])
+            self.model_info["version"] = "2.0"
     
     def generate_response(self, 
                          prompt: str, 
@@ -284,3 +318,349 @@ class AIEngine:
                 return True, reason
                 
         return False, ""
+    
+    # ======= Advanced AI Capabilities =======
+    
+    def generate_code(self, description: str, language: str = "python") -> Dict[str, Any]:
+        """
+        Generate code based on description using advanced AI
+        
+        Args:
+            description: Description of the code to generate
+            language: Programming language
+            
+        Returns:
+            Dictionary with generated code
+        """
+        if not self.thor_ai:
+            return {
+                "status": "error",
+                "message": "Advanced AI capabilities not available",
+                "code": "# Advanced AI capabilities not available\n# Please provide OpenAI API key to enable this feature"
+            }
+        
+        try:
+            code = self.thor_ai.generate_code(description, language)
+            return {
+                "status": "success",
+                "language": language,
+                "code": code
+            }
+        except Exception as e:
+            logger.error(f"Code generation error: {e}")
+            return {
+                "status": "error",
+                "message": str(e),
+                "code": f"# Error generating code: {str(e)}"
+            }
+    
+    def analyze_code(self, code: str) -> Dict[str, Any]:
+        """
+        Analyze code for improvements and bugs
+        
+        Args:
+            code: Code to analyze
+            
+        Returns:
+            Dictionary with analysis results
+        """
+        if not self.thor_ai:
+            return {
+                "status": "error",
+                "message": "Advanced AI capabilities not available",
+                "analysis": "Advanced AI capabilities not available"
+            }
+        
+        try:
+            analysis = self.thor_ai.analyze_code(code)
+            return {
+                "status": "success",
+                "analysis": analysis
+            }
+        except Exception as e:
+            logger.error(f"Code analysis error: {e}")
+            return {
+                "status": "error",
+                "message": str(e),
+                "analysis": f"Error analyzing code: {str(e)}"
+            }
+    
+    def create_dataset(self, description: str, format_type: str = "json", size: int = 10) -> Dict[str, Any]:
+        """
+        Create a dataset based on description
+        
+        Args:
+            description: Description of the dataset
+            format_type: Format type (json, csv, etc.)
+            size: Number of items in the dataset
+            
+        Returns:
+            Dictionary with the created dataset
+        """
+        if not self.thor_ai:
+            return {
+                "status": "error",
+                "message": "Advanced AI capabilities not available",
+                "dataset": None
+            }
+        
+        try:
+            dataset = self.thor_ai.create_dataset(description, format_type, size)
+            return {
+                "status": "success",
+                "format": format_type,
+                "size": size,
+                "dataset": dataset
+            }
+        except Exception as e:
+            logger.error(f"Dataset creation error: {e}")
+            return {
+                "status": "error",
+                "message": str(e),
+                "dataset": None
+            }
+    
+    def network_scan(self, target_description: str) -> Dict[str, Any]:
+        """
+        Generate network scanning code
+        
+        Args:
+            target_description: Description of the network task
+            
+        Returns:
+            Dictionary with generated code and explanation
+        """
+        if not self.thor_ai:
+            return {
+                "status": "error",
+                "message": "Advanced AI capabilities not available",
+                "script": "# Advanced AI capabilities not available"
+            }
+        
+        try:
+            result = self.thor_ai.network_scan(target_description)
+            return {
+                "status": "success",
+                "result": result
+            }
+        except Exception as e:
+            logger.error(f"Network scan error: {e}")
+            return {
+                "status": "error",
+                "message": str(e),
+                "script": f"# Error generating network script: {str(e)}"
+            }
+    
+    def suggest_improvements(self) -> Dict[str, Any]:
+        """
+        Suggest self-improvements for THOR
+        
+        Returns:
+            Dictionary with improvement suggestions
+        """
+        if not self.thor_ai:
+            return {
+                "status": "error",
+                "message": "Advanced AI capabilities not available",
+                "suggestions": []
+            }
+        
+        try:
+            system_description = f"THOR AI System Version {self.model_info['version']}\n"
+            system_description += f"Capabilities: {', '.join(self.model_info['capabilities'])}\n"
+            
+            suggestions = self.thor_ai.suggest_improvements(system_description)
+            return {
+                "status": "success",
+                "suggestions": suggestions
+            }
+        except Exception as e:
+            logger.error(f"Improvement suggestion error: {e}")
+            return {
+                "status": "error",
+                "message": str(e),
+                "suggestions": []
+            }
+    
+    # ======= Clone Management Methods =======
+    
+    def create_clone(self, description: str) -> Dict[str, Any]:
+        """
+        Create a THOR clone
+        
+        Args:
+            description: Description of the clone
+            
+        Returns:
+            Dictionary with clone information
+        """
+        if not self.clone_manager:
+            return {
+                "status": "error",
+                "message": "Clone management not available"
+            }
+        
+        try:
+            # Define capabilities for the clone
+            capabilities = {
+                "base_capabilities": self.model_info["capabilities"],
+                "description": description,
+                "created_at": datetime.utcnow().isoformat()
+            }
+            
+            # Create the clone
+            clone_info = self.clone_manager.create_clone(
+                base_version=self.model_info["version"],
+                description=description,
+                capabilities=capabilities
+            )
+            
+            if clone_info:
+                return {
+                    "status": "success",
+                    "message": f"Created clone {clone_info['name']}",
+                    "clone": clone_info
+                }
+            else:
+                return {
+                    "status": "error",
+                    "message": "Failed to create clone"
+                }
+        except Exception as e:
+            logger.error(f"Clone creation error: {e}")
+            return {
+                "status": "error",
+                "message": f"Error creating clone: {str(e)}"
+            }
+    
+    def list_clones(self) -> Dict[str, Any]:
+        """
+        List all THOR clones
+        
+        Returns:
+            Dictionary with list of clones
+        """
+        if not self.clone_manager:
+            return {
+                "status": "error",
+                "message": "Clone management not available",
+                "clones": []
+            }
+        
+        try:
+            clones = self.clone_manager.list_clones()
+            return {
+                "status": "success",
+                "count": len(clones),
+                "clones": clones
+            }
+        except Exception as e:
+            logger.error(f"Error listing clones: {e}")
+            return {
+                "status": "error",
+                "message": f"Error listing clones: {str(e)}",
+                "clones": []
+            }
+    
+    def activate_clone(self, clone_name: str) -> Dict[str, Any]:
+        """
+        Activate a THOR clone
+        
+        Args:
+            clone_name: Name of the clone to activate
+            
+        Returns:
+            Dictionary with activation status
+        """
+        if not self.clone_manager:
+            return {
+                "status": "error",
+                "message": "Clone management not available"
+            }
+        
+        try:
+            success = self.clone_manager.activate_clone(clone_name)
+            if success:
+                return {
+                    "status": "success",
+                    "message": f"Activated clone {clone_name}"
+                }
+            else:
+                return {
+                    "status": "error",
+                    "message": f"Failed to activate clone {clone_name}"
+                }
+        except Exception as e:
+            logger.error(f"Clone activation error: {e}")
+            return {
+                "status": "error",
+                "message": f"Error activating clone: {str(e)}"
+            }
+    
+    def deactivate_clones(self) -> Dict[str, Any]:
+        """
+        Deactivate all THOR clones
+        
+        Returns:
+            Dictionary with deactivation status
+        """
+        if not self.clone_manager:
+            return {
+                "status": "error",
+                "message": "Clone management not available"
+            }
+        
+        try:
+            success = self.clone_manager.deactivate_all_clones()
+            if success:
+                return {
+                    "status": "success",
+                    "message": "Deactivated all clones"
+                }
+            else:
+                return {
+                    "status": "error",
+                    "message": "Failed to deactivate clones"
+                }
+        except Exception as e:
+            logger.error(f"Clone deactivation error: {e}")
+            return {
+                "status": "error",
+                "message": f"Error deactivating clones: {str(e)}"
+            }
+    
+    def update_clone(self, clone_name: str, updates: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Update a THOR clone
+        
+        Args:
+            clone_name: Name of the clone to update
+            updates: Dictionary of updates to apply
+            
+        Returns:
+            Dictionary with update status
+        """
+        if not self.clone_manager:
+            return {
+                "status": "error",
+                "message": "Clone management not available"
+            }
+        
+        try:
+            success = self.clone_manager.update_clone(clone_name, updates)
+            if success:
+                return {
+                    "status": "success",
+                    "message": f"Updated clone {clone_name}"
+                }
+            else:
+                return {
+                    "status": "error",
+                    "message": f"Failed to update clone {clone_name}"
+                }
+        except Exception as e:
+            logger.error(f"Clone update error: {e}")
+            return {
+                "status": "error",
+                "message": f"Error updating clone: {str(e)}"
+            }

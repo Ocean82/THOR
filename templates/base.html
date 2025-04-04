@@ -30,6 +30,20 @@
                         <li class="nav-item">
                             <a class="nav-link" href="/conversations">Conversations</a>
                         </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="thorDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-brain me-1"></i>THOR Advanced
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="thorDropdown">
+                                <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#codeGenerationModal">Code Generation</a></li>
+                                <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#codeAnalysisModal">Code Analysis</a></li>
+                                <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#datasetCreationModal">Dataset Creation</a></li>
+                                <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#networkScanModal">Network Scan</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#cloneManagerModal">Clone Manager</a></li>
+                                <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#selfImprovementModal">Self-Improvement</a></li>
+                            </ul>
+                        </li>
                         <li class="nav-item">
                             <a class="nav-link" href="/settings">Settings</a>
                         </li>
@@ -184,10 +198,379 @@
         </div>
     </footer>
 
+    <!-- THOR Advanced Capabilities Modals -->
+    
+    <!-- Code Generation Modal -->
+    <div class="modal fade" id="codeGenerationModal" tabindex="-1" aria-labelledby="codeGenerationModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="codeGenerationModalLabel">Advanced Code Generation</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-12 mb-3">
+                            <label for="codeDescription" class="form-label">Code Description</label>
+                            <textarea class="form-control" id="codeDescription" rows="4" placeholder="Describe the code you want THOR to generate..."></textarea>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="codeLanguage" class="form-label">Programming Language</label>
+                            <select class="form-select" id="codeLanguage">
+                                <option value="python" selected>Python</option>
+                                <option value="javascript">JavaScript</option>
+                                <option value="java">Java</option>
+                                <option value="cpp">C++</option>
+                                <option value="csharp">C#</option>
+                                <option value="php">PHP</option>
+                                <option value="ruby">Ruby</option>
+                                <option value="go">Go</option>
+                                <option value="swift">Swift</option>
+                                <option value="sql">SQL</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3 d-flex align-items-end">
+                            <button class="btn btn-primary w-100" id="generateCodeBtn">
+                                <i class="fas fa-code me-2"></i>Generate Code
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <label for="generatedCode" class="form-label">Generated Code:</label>
+                        <div class="position-relative">
+                            <pre class="bg-dark text-light p-3 rounded" id="generatedCode">// Generated code will appear here...</pre>
+                            <button class="btn btn-sm btn-outline-light position-absolute top-0 end-0 m-2" id="copyCodeBtn" data-bs-toggle="tooltip" title="Copy to clipboard">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-info" id="saveCodeBtn" disabled>Save Code</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Code Analysis Modal -->
+    <div class="modal fade" id="codeAnalysisModal" tabindex="-1" aria-labelledby="codeAnalysisModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="codeAnalysisModalLabel">Advanced Code Analysis</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="codeToAnalyze" class="form-label">Paste code to analyze:</label>
+                        <textarea class="form-control" id="codeToAnalyze" rows="10" placeholder="Paste your code here for THOR to analyze..."></textarea>
+                    </div>
+                    <div class="mb-3 text-center">
+                        <button class="btn btn-primary" id="analyzeCodeBtn">
+                            <i class="fas fa-search-plus me-2"></i>Analyze Code
+                        </button>
+                    </div>
+                    <div class="mt-4">
+                        <label for="analysisResults" class="form-label">Analysis Results:</label>
+                        <div class="card">
+                            <div class="card-header">
+                                <ul class="nav nav-tabs card-header-tabs" id="analysisTabNav" role="tablist">
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link active" id="issues-tab" data-bs-toggle="tab" data-bs-target="#issues" type="button" role="tab" aria-controls="issues" aria-selected="true">Issues</button>
+                                    </li>
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link" id="improvements-tab" data-bs-toggle="tab" data-bs-target="#improvements" type="button" role="tab" aria-controls="improvements" aria-selected="false">Improvements</button>
+                                    </li>
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link" id="summary-tab" data-bs-toggle="tab" data-bs-target="#summary" type="button" role="tab" aria-controls="summary" aria-selected="false">Summary</button>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="card-body">
+                                <div class="tab-content" id="analysisTabContent">
+                                    <div class="tab-pane fade show active" id="issues" role="tabpanel" aria-labelledby="issues-tab">
+                                        <ul class="list-group list-group-flush" id="issuesList">
+                                            <li class="list-group-item text-muted">Analysis results will appear here...</li>
+                                        </ul>
+                                    </div>
+                                    <div class="tab-pane fade" id="improvements" role="tabpanel" aria-labelledby="improvements-tab">
+                                        <ul class="list-group list-group-flush" id="improvementsList">
+                                            <li class="list-group-item text-muted">Improvement suggestions will appear here...</li>
+                                        </ul>
+                                    </div>
+                                    <div class="tab-pane fade" id="summary" role="tabpanel" aria-labelledby="summary-tab">
+                                        <p id="analysisSummary" class="text-muted">Code analysis summary will appear here...</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-info" id="exportAnalysisBtn" disabled>Export Analysis</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dataset Creation Modal -->
+    <div class="modal fade" id="datasetCreationModal" tabindex="-1" aria-labelledby="datasetCreationModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="datasetCreationModalLabel">Dataset Creation</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-12 mb-3">
+                            <label for="datasetDescription" class="form-label">Dataset Description</label>
+                            <textarea class="form-control" id="datasetDescription" rows="4" placeholder="Describe the dataset you want THOR to create..."></textarea>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="datasetFormat" class="form-label">Format</label>
+                            <select class="form-select" id="datasetFormat">
+                                <option value="json" selected>JSON</option>
+                                <option value="csv">CSV</option>
+                                <option value="xml">XML</option>
+                                <option value="yaml">YAML</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="datasetSize" class="form-label">Number of Items</label>
+                            <input type="number" class="form-control" id="datasetSize" min="1" max="100" value="10">
+                        </div>
+                        <div class="col-md-12 mb-3">
+                            <button class="btn btn-primary w-100" id="generateDatasetBtn">
+                                <i class="fas fa-database me-2"></i>Generate Dataset
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <label for="generatedDataset" class="form-label">Generated Dataset:</label>
+                        <div class="position-relative">
+                            <pre class="bg-dark text-light p-3 rounded" id="generatedDataset" style="max-height: 300px; overflow-y: auto;">// Generated dataset will appear here...</pre>
+                            <button class="btn btn-sm btn-outline-light position-absolute top-0 end-0 m-2" id="copyDatasetBtn" data-bs-toggle="tooltip" title="Copy to clipboard">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-info" id="downloadDatasetBtn" disabled>Download Dataset</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Network Scan Modal -->
+    <div class="modal fade" id="networkScanModal" tabindex="-1" aria-labelledby="networkScanModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="networkScanModalLabel">Network Scan Code Generation</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>This tool generates Python network scanning scripts for educational purposes. Use responsibly and only on networks you own or have permission to scan.
+                    </div>
+                    <div class="mb-3">
+                        <label for="networkDescription" class="form-label">Describe the network task</label>
+                        <textarea class="form-control" id="networkDescription" rows="4" placeholder="Describe the network scanning or analysis task you want THOR to generate code for..."></textarea>
+                    </div>
+                    <div class="mb-3 text-center">
+                        <button class="btn btn-primary" id="generateNetworkScanBtn">
+                            <i class="fas fa-network-wired me-2"></i>Generate Script
+                        </button>
+                    </div>
+                    <div class="mt-4">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label for="networkScript" class="form-label">Generated Script:</label>
+                                <div class="position-relative">
+                                    <pre class="bg-dark text-light p-3 rounded" id="networkScript" style="height: 300px; overflow-y: auto;">
+# Network scanning script will appear here...
+                                    </pre>
+                                    <button class="btn btn-sm btn-outline-light position-absolute top-0 end-0 m-2" id="copyNetworkScriptBtn" data-bs-toggle="tooltip" title="Copy to clipboard">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="scriptExplanation" class="form-label">Explanation:</label>
+                                <div class="card bg-dark text-light">
+                                    <div class="card-body" id="scriptExplanation" style="height: 300px; overflow-y: auto;">
+                                        <p class="text-muted">Explanation of the generated script will appear here...</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-info" id="saveNetworkScriptBtn" disabled>Save Script</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Clone Manager Modal -->
+    <div class="modal fade" id="cloneManagerModal" tabindex="-1" aria-labelledby="cloneManagerModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="cloneManagerModalLabel">THOR Clone Manager</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <ul class="nav nav-tabs" id="cloneManagerTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="cloneList-tab" data-bs-toggle="tab" data-bs-target="#cloneList" type="button" role="tab" aria-controls="cloneList" aria-selected="true">Clones</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="createClone-tab" data-bs-toggle="tab" data-bs-target="#createClone" type="button" role="tab" aria-controls="createClone" aria-selected="false">Create Clone</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="updateClone-tab" data-bs-toggle="tab" data-bs-target="#updateClone" type="button" role="tab" aria-controls="updateClone" aria-selected="false">Update Clone</button>
+                        </li>
+                    </ul>
+                    <div class="tab-content pt-3" id="cloneManagerTabContent">
+                        <!-- Clone List Tab -->
+                        <div class="tab-pane fade show active" id="cloneList" role="tabpanel" aria-labelledby="cloneList-tab">
+                            <div class="mb-3 d-flex justify-content-end">
+                                <button class="btn btn-sm btn-outline-primary" id="refreshClonesBtn">
+                                    <i class="fas fa-sync me-1"></i>Refresh
+                                </button>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Clone Name</th>
+                                            <th>Description</th>
+                                            <th>Base Version</th>
+                                            <th>Created</th>
+                                            <th>Status</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="clonesTableBody">
+                                        <tr>
+                                            <td colspan="6" class="text-center">Loading clones...</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="mt-3">
+                                <button class="btn btn-warning" id="deactivateAllClonesBtn">
+                                    <i class="fas fa-power-off me-2"></i>Deactivate All Clones
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Create Clone Tab -->
+                        <div class="tab-pane fade" id="createClone" role="tabpanel" aria-labelledby="createClone-tab">
+                            <form id="createCloneForm">
+                                <div class="mb-3">
+                                    <label for="cloneDescription" class="form-label">Clone Description</label>
+                                    <textarea class="form-control" id="cloneDescription" rows="4" placeholder="Describe the purpose and specialization of this THOR clone..."></textarea>
+                                </div>
+                                <div class="mb-3 text-center">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-clone me-2"></i>Create THOR Clone
+                                    </button>
+                                </div>
+                            </form>
+                            <div class="mt-3" id="createCloneResult"></div>
+                        </div>
+                        
+                        <!-- Update Clone Tab -->
+                        <div class="tab-pane fade" id="updateClone" role="tabpanel" aria-labelledby="updateClone-tab">
+                            <form id="updateCloneForm">
+                                <div class="mb-3">
+                                    <label for="cloneToUpdate" class="form-label">Select Clone</label>
+                                    <select class="form-select" id="cloneToUpdate">
+                                        <option value="" selected disabled>Select a clone to update...</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="updateDescription" class="form-label">Updated Description</label>
+                                    <textarea class="form-control" id="updateDescription" rows="3" placeholder="New description for the clone..."></textarea>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="updateCapabilities" class="form-label">Capabilities (JSON)</label>
+                                    <textarea class="form-control" id="updateCapabilities" rows="5" placeholder='{"capability1": true, "capability2": "value"}'></textarea>
+                                </div>
+                                <div class="mb-3 text-center">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-sync me-2"></i>Update Clone
+                                    </button>
+                                </div>
+                            </form>
+                            <div class="mt-3" id="updateCloneResult"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Self-Improvement Modal -->
+    <div class="modal fade" id="selfImprovementModal" tabindex="-1" aria-labelledby="selfImprovementModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="selfImprovementModalLabel">THOR Self-Improvement</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="text-center mb-4">
+                        <i class="fas fa-robot fa-4x mb-3 text-primary"></i>
+                        <h4>THOR Self-Evolution System</h4>
+                        <p class="text-muted">Request THOR to analyze its own systems and suggest improvements</p>
+                    </div>
+                    
+                    <div class="mb-3 text-center">
+                        <button class="btn btn-primary btn-lg" id="requestImprovementsBtn">
+                            <i class="fas fa-brain me-2"></i>Request Self-Improvement Suggestions
+                        </button>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <h5>Improvement Suggestions:</h5>
+                        <div class="card bg-dark text-light">
+                            <div class="card-body" id="improvementSuggestions" style="min-height: 300px;">
+                                <p class="text-muted text-center">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    Click the button above to request improvement suggestions
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-success" id="implementImprovementsBtn" disabled>
+                        <i class="fas fa-check me-2"></i>Implement Selected Improvements
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <!-- Custom JS -->
     <script src="{{ url_for('static', filename='js/chat.js') }}"></script>
     <script src="{{ url_for('static', filename='js/settings.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/thor-advanced.js') }}"></script>
 </body>
 </html>

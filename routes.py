@@ -534,6 +534,238 @@ def register_routes(app):
         return render_template('index.html', 
                              active_conversation=conversation,
                              messages=messages)
+    
+    # ======= THOR Advanced Capabilities Routes =======
+    
+    @app.route('/api/thor/generate-code', methods=['POST'])
+    def thor_generate_code():
+        """API endpoint for code generation"""
+        user_id = session.get('user_id')
+        
+        if not user_id:
+            return jsonify({'error': 'User not logged in'}), 401
+        
+        data = request.json
+        description = data.get('description', '')
+        language = data.get('language', 'python')
+        
+        if not description:
+            return jsonify({'error': 'Code description is required'}), 400
+        
+        try:
+            result = ai_engine.generate_code(description, language)
+            return jsonify(result)
+        except Exception as e:
+            logger.error(f"Error generating code: {e}")
+            return jsonify({
+                'status': 'error',
+                'message': f'Error generating code: {str(e)}'
+            }), 500
+    
+    @app.route('/api/thor/analyze-code', methods=['POST'])
+    def thor_analyze_code():
+        """API endpoint for code analysis"""
+        user_id = session.get('user_id')
+        
+        if not user_id:
+            return jsonify({'error': 'User not logged in'}), 401
+        
+        data = request.json
+        code = data.get('code', '')
+        
+        if not code:
+            return jsonify({'error': 'Code is required'}), 400
+        
+        try:
+            result = ai_engine.analyze_code(code)
+            return jsonify(result)
+        except Exception as e:
+            logger.error(f"Error analyzing code: {e}")
+            return jsonify({
+                'status': 'error',
+                'message': f'Error analyzing code: {str(e)}'
+            }), 500
+    
+    @app.route('/api/thor/create-dataset', methods=['POST'])
+    def thor_create_dataset():
+        """API endpoint for dataset creation"""
+        user_id = session.get('user_id')
+        
+        if not user_id:
+            return jsonify({'error': 'User not logged in'}), 401
+        
+        data = request.json
+        description = data.get('description', '')
+        format_type = data.get('format', 'json')
+        size = data.get('size', 10)
+        
+        if not description:
+            return jsonify({'error': 'Dataset description is required'}), 400
+        
+        try:
+            result = ai_engine.create_dataset(description, format_type, size)
+            return jsonify(result)
+        except Exception as e:
+            logger.error(f"Error creating dataset: {e}")
+            return jsonify({
+                'status': 'error',
+                'message': f'Error creating dataset: {str(e)}'
+            }), 500
+    
+    @app.route('/api/thor/network-scan', methods=['POST'])
+    def thor_network_scan():
+        """API endpoint for network scanning code generation"""
+        user_id = session.get('user_id')
+        
+        if not user_id:
+            return jsonify({'error': 'User not logged in'}), 401
+        
+        data = request.json
+        target_description = data.get('target_description', '')
+        
+        if not target_description:
+            return jsonify({'error': 'Target description is required'}), 400
+        
+        try:
+            result = ai_engine.network_scan(target_description)
+            return jsonify(result)
+        except Exception as e:
+            logger.error(f"Error generating network scan: {e}")
+            return jsonify({
+                'status': 'error',
+                'message': f'Error generating network scan: {str(e)}'
+            }), 500
+    
+    @app.route('/api/thor/suggest-improvements', methods=['POST'])
+    def thor_suggest_improvements():
+        """API endpoint for THOR self-improvement suggestions"""
+        user_id = session.get('user_id')
+        
+        if not user_id:
+            return jsonify({'error': 'User not logged in'}), 401
+        
+        try:
+            result = ai_engine.suggest_improvements()
+            return jsonify(result)
+        except Exception as e:
+            logger.error(f"Error suggesting improvements: {e}")
+            return jsonify({
+                'status': 'error',
+                'message': f'Error suggesting improvements: {str(e)}'
+            }), 500
+    
+    # ======= THOR Clone Management Routes =======
+    
+    @app.route('/api/thor/create-clone', methods=['POST'])
+    def thor_create_clone():
+        """API endpoint for THOR clone creation"""
+        user_id = session.get('user_id')
+        
+        if not user_id:
+            return jsonify({'error': 'User not logged in'}), 401
+        
+        data = request.json
+        description = data.get('description', '')
+        
+        if not description:
+            return jsonify({'error': 'Clone description is required'}), 400
+        
+        try:
+            result = ai_engine.create_clone(description)
+            return jsonify(result)
+        except Exception as e:
+            logger.error(f"Error creating clone: {e}")
+            return jsonify({
+                'status': 'error',
+                'message': f'Error creating clone: {str(e)}'
+            }), 500
+    
+    @app.route('/api/thor/list-clones', methods=['GET'])
+    def thor_list_clones():
+        """API endpoint to list all THOR clones"""
+        user_id = session.get('user_id')
+        
+        if not user_id:
+            return jsonify({'error': 'User not logged in'}), 401
+        
+        try:
+            result = ai_engine.list_clones()
+            return jsonify(result)
+        except Exception as e:
+            logger.error(f"Error listing clones: {e}")
+            return jsonify({
+                'status': 'error',
+                'message': f'Error listing clones: {str(e)}'
+            }), 500
+    
+    @app.route('/api/thor/activate-clone', methods=['POST'])
+    def thor_activate_clone():
+        """API endpoint to activate a THOR clone"""
+        user_id = session.get('user_id')
+        
+        if not user_id:
+            return jsonify({'error': 'User not logged in'}), 401
+        
+        data = request.json
+        clone_name = data.get('clone_name', '')
+        
+        if not clone_name:
+            return jsonify({'error': 'Clone name is required'}), 400
+        
+        try:
+            result = ai_engine.activate_clone(clone_name)
+            return jsonify(result)
+        except Exception as e:
+            logger.error(f"Error activating clone: {e}")
+            return jsonify({
+                'status': 'error',
+                'message': f'Error activating clone: {str(e)}'
+            }), 500
+    
+    @app.route('/api/thor/deactivate-clones', methods=['POST'])
+    def thor_deactivate_clones():
+        """API endpoint to deactivate all THOR clones"""
+        user_id = session.get('user_id')
+        
+        if not user_id:
+            return jsonify({'error': 'User not logged in'}), 401
+        
+        try:
+            result = ai_engine.deactivate_clones()
+            return jsonify(result)
+        except Exception as e:
+            logger.error(f"Error deactivating clones: {e}")
+            return jsonify({
+                'status': 'error',
+                'message': f'Error deactivating clones: {str(e)}'
+            }), 500
+    
+    @app.route('/api/thor/update-clone', methods=['POST'])
+    def thor_update_clone():
+        """API endpoint to update a THOR clone"""
+        user_id = session.get('user_id')
+        
+        if not user_id:
+            return jsonify({'error': 'User not logged in'}), 401
+        
+        data = request.json
+        clone_name = data.get('clone_name', '')
+        updates = data.get('updates', {})
+        
+        if not clone_name:
+            return jsonify({'error': 'Clone name is required'}), 400
+        if not updates:
+            return jsonify({'error': 'Updates are required'}), 400
+        
+        try:
+            result = ai_engine.update_clone(clone_name, updates)
+            return jsonify(result)
+        except Exception as e:
+            logger.error(f"Error updating clone: {e}")
+            return jsonify({
+                'status': 'error',
+                'message': f'Error updating clone: {str(e)}'
+            }), 500
                              
     # Return success to indicate routes were registered
     return True
