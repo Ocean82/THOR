@@ -22,6 +22,11 @@ class AIEngine:
     
     def __init__(self):
         """Initialize the AI Engine with custom models"""
+        # Initialize core components
+        self.thor_ai = None
+        self.anthropic_ai = None
+        self.clone_manager = None
+        
         # Get available models
         self.available_models = model_integrator.list_available_models()
         self.current_model = None
