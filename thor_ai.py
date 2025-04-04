@@ -44,13 +44,22 @@ class ThorAI:
             full_prompt = f"Generate {language} code for the following: {prompt}\n"
             full_prompt += f"Only output the code, no explanations.\n"
             
+            system_message = f"""You are an expert programming AI assistant specializing in {language}.
+Your role is to:
+1. Understand programming concepts deeply and explain them clearly
+2. Generate working, well-documented code with best practices
+3. Learn from context and adapt responses accordingly
+4. Provide relevant code examples and explanations
+5. Focus on practical, maintainable solutions"""
+
             response = self.client.chat.completions.create(
                 model=self.model_version,
                 messages=[
-                    {"role": "system", "content": f"You are an expert {language} programmer. Generate only working code, no explanations."},
+                    {"role": "system", "content": system_message},
                     {"role": "user", "content": full_prompt}
                 ],
-                max_tokens=4000
+                max_tokens=4000,
+                temperature=0.7
             )
             return response.choices[0].message.content
         except Exception as e:

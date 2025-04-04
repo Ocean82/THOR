@@ -187,7 +187,25 @@ class AIEngine:
             # Analyze intent to determine response type
             intent = self._analyze_intent(prompt)
             
-            # Generate response based on intent and conversation history
+            # Use context from conversation history to generate better responses
+            context = ""
+            if conversation_history:
+                last_messages = conversation_history[-3:]  # Get last 3 messages for context
+                context = "\n".join([f"{'User' if msg['is_user'] else 'AI'}: {msg['content']}" for msg in last_messages])
+            
+            # Generate response with context awareness
+            if self.thor_ai:
+                try:
+                    response = self.thor_ai.generate_code(f"Context:\n{context}\n\nCurrent request:\n{prompt}", "python")
+                    return {
+                        "text": response,
+                        "model": self.model_info["name"],
+                        "status": "success"
+                    }
+                except Exception as e:
+                    logger.error(f"Advanced response generation failed: {e}")
+                    
+            # Fallback to basic response
             response_text = self._generate_text_response(prompt, intent, conversation_history)
             
             # Apply content filtering if enabled
