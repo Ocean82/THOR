@@ -13,6 +13,13 @@ try:
     HAS_THOR_AI = True
 except ImportError:
     HAS_THOR_AI = False
+    
+# Import the Anthropic-based AnthropicAI
+try:
+    from anthropic_ai import AnthropicAI
+    HAS_ANTHROPIC_AI = True
+except ImportError:
+    HAS_ANTHROPIC_AI = False
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
@@ -26,17 +33,30 @@ class AIEngine:
     
     def __init__(self):
         """Initialize the AI Engine with default settings"""
-        # Initialize ThorAI and CloneManager if available
+        # Initialize ThorAI, AnthropicAI, and CloneManager if available
         self.thor_ai = None
+        self.anthropic_ai = None
         self.clone_manager = None
         
+        # Try to initialize OpenAI integration
         if HAS_THOR_AI and os.environ.get("OPENAI_API_KEY"):
             try:
                 self.thor_ai = ThorAI()
                 self.clone_manager = ThorCloneManager()
                 logger.info("Advanced AI capabilities initialized with OpenAI integration")
             except Exception as e:
-                logger.error(f"Failed to initialize advanced AI capabilities: {e}")
+                logger.error(f"Failed to initialize OpenAI capabilities: {e}")
+        
+        # Try to initialize Anthropic integration (as a fallback or alternative)
+        if HAS_ANTHROPIC_AI and os.environ.get("ANTHROPIC_API_KEY"):
+            try:
+                self.anthropic_ai = AnthropicAI()
+                logger.info("Anthropic AI capabilities initialized successfully")
+                # Initialize clone manager if not already done with OpenAI
+                if not self.clone_manager and HAS_THOR_AI:
+                    self.clone_manager = ThorCloneManager()
+            except Exception as e:
+                logger.error(f"Failed to initialize Anthropic capabilities: {e}")
         
         # Basic conversation templates
         self.responses = {
@@ -106,7 +126,7 @@ class AIEngine:
         }
         
         # Add advanced capabilities if available
-        if self.thor_ai:
+        if self.thor_ai or self.anthropic_ai:
             self.model_info["capabilities"].extend([
                 "advanced code generation",
                 "code analysis",
@@ -116,6 +136,14 @@ class AIEngine:
                 "self-cloning"
             ])
             self.model_info["version"] = "2.0"
+            
+        # Add specific provider information
+        if self.thor_ai and self.anthropic_ai:
+            self.model_info["providers"] = ["OpenAI", "Anthropic"]
+        elif self.thor_ai:
+            self.model_info["providers"] = ["OpenAI"]
+        elif self.anthropic_ai:
+            self.model_info["providers"] = ["Anthropic"]
     
     def generate_response(self, 
                          prompt: str, 
@@ -332,20 +360,58 @@ class AIEngine:
         Returns:
             Dictionary with generated code
         """
-        if not self.thor_ai:
+        # If no AI providers are available, use the built-in fallback
+        if not self.thor_ai and not self.anthropic_ai:
             return self._generate_fallback_code(description, language)
         
-        try:
-            code = self.thor_ai.generate_code(description, language)
-            return {
-                "status": "success",
-                "language": language,
-                "code": code
-            }
-        except Exception as e:
-            logger.error(f"Code generation error: {e}")
-            logger.info("Falling back to basic code generation")
-            return self._generate_fallback_code(description, language)
+        # Try OpenAI first if available
+        if self.thor_ai:
+            try:
+                code = self.thor_ai.generate_code(description, language)
+                return {
+                    "status": "success",
+                    "language": language,
+                    "code": code,
+                    "provider": "openai"
+                }
+            except Exception as e:
+                logger.error(f"OpenAI code generation error: {e}")
+                logger.info("Attempting to use Anthropic as fallback")
+                
+                # If Anthropic is available as fallback
+                if self.anthropic_ai:
+                    try:
+                        result = self.anthropic_ai.generate_code(description, language)
+                        return {
+                            "status": "success",
+                            "language": language,
+                            "code": result.get("code", "# No code generated"),
+                            "provider": "anthropic"
+                        }
+                    except Exception as e2:
+                        logger.error(f"Anthropic fallback failed: {e2}")
+                
+                # If both fail or Anthropic isn't available, use built-in fallback
+                logger.info("Falling back to basic code generation")
+                return self._generate_fallback_code(description, language)
+        
+        # If only Anthropic is available
+        elif self.anthropic_ai:
+            try:
+                result = self.anthropic_ai.generate_code(description, language)
+                return {
+                    "status": "success",
+                    "language": language,
+                    "code": result.get("code", "# No code generated"),
+                    "provider": "anthropic"
+                }
+            except Exception as e:
+                logger.error(f"Anthropic code generation error: {e}")
+                logger.info("Falling back to basic code generation")
+                return self._generate_fallback_code(description, language)
+        
+        # This shouldn't be reachable given the first if statement, but added to satisfy type checker
+        return self._generate_fallback_code(description, language)
             
     def _generate_fallback_code(self, description: str, language: str) -> Dict[str, Any]:
         """
@@ -423,19 +489,55 @@ class AIEngine:
         Returns:
             Dictionary with analysis results
         """
-        if not self.thor_ai:
+        # If no AI providers are available, use the built-in fallback
+        if not self.thor_ai and not self.anthropic_ai:
             return self._generate_fallback_analysis(code)
         
-        try:
-            analysis = self.thor_ai.analyze_code(code)
-            return {
-                "status": "success",
-                "analysis": analysis
-            }
-        except Exception as e:
-            logger.error(f"Code analysis error: {e}")
-            logger.info("Falling back to basic code analysis")
-            return self._generate_fallback_analysis(code)
+        # Try OpenAI first if available
+        if self.thor_ai:
+            try:
+                analysis = self.thor_ai.analyze_code(code)
+                return {
+                    "status": "success",
+                    "analysis": analysis,
+                    "provider": "openai"
+                }
+            except Exception as e:
+                logger.error(f"OpenAI code analysis error: {e}")
+                logger.info("Attempting to use Anthropic as fallback")
+                
+                # If Anthropic is available as fallback
+                if self.anthropic_ai:
+                    try:
+                        result = self.anthropic_ai.analyze_code(code)
+                        return {
+                            "status": "success",
+                            "analysis": result.get("analysis", "No analysis provided"),
+                            "provider": "anthropic"
+                        }
+                    except Exception as e2:
+                        logger.error(f"Anthropic fallback failed: {e2}")
+                
+                # If both fail or Anthropic isn't available, use built-in fallback
+                logger.info("Falling back to basic code analysis")
+                return self._generate_fallback_analysis(code)
+        
+        # If only Anthropic is available
+        elif self.anthropic_ai:
+            try:
+                result = self.anthropic_ai.analyze_code(code)
+                return {
+                    "status": "success",
+                    "analysis": result.get("analysis", "No analysis provided"),
+                    "provider": "anthropic"
+                }
+            except Exception as e:
+                logger.error(f"Anthropic code analysis error: {e}")
+                logger.info("Falling back to basic code analysis")
+                return self._generate_fallback_analysis(code)
+                
+        # This shouldn't be reachable given the first if statement, but added to satisfy type checker
+        return self._generate_fallback_analysis(code)
             
     def _generate_fallback_analysis(self, code: str) -> Dict[str, Any]:
         """
@@ -558,21 +660,61 @@ class AIEngine:
         Returns:
             Dictionary with the created dataset
         """
-        if not self.thor_ai:
+        # If no AI providers are available, use the built-in fallback
+        if not self.thor_ai and not self.anthropic_ai:
             return self._generate_fallback_dataset(description, format_type, size)
         
-        try:
-            dataset = self.thor_ai.create_dataset(description, format_type, size)
-            return {
-                "status": "success",
-                "format": format_type,
-                "size": size,
-                "dataset": dataset
-            }
-        except Exception as e:
-            logger.error(f"Dataset creation error: {e}")
-            logger.info("Falling back to basic dataset creation")
-            return self._generate_fallback_dataset(description, format_type, size)
+        # Try OpenAI first if available
+        if self.thor_ai:
+            try:
+                dataset = self.thor_ai.create_dataset(description, format_type, size)
+                return {
+                    "status": "success",
+                    "format": format_type,
+                    "size": size,
+                    "dataset": dataset,
+                    "provider": "openai"
+                }
+            except Exception as e:
+                logger.error(f"OpenAI dataset creation error: {e}")
+                logger.info("Attempting to use Anthropic as fallback")
+                
+                # If Anthropic is available as fallback
+                if self.anthropic_ai:
+                    try:
+                        result = self.anthropic_ai.create_dataset(description, format_type, size)
+                        return {
+                            "status": "success",
+                            "format": format_type,
+                            "size": size,
+                            "dataset": result.get("dataset", "No dataset generated"),
+                            "provider": "anthropic"
+                        }
+                    except Exception as e2:
+                        logger.error(f"Anthropic fallback failed: {e2}")
+                
+                # If both fail or Anthropic isn't available, use built-in fallback
+                logger.info("Falling back to basic dataset creation")
+                return self._generate_fallback_dataset(description, format_type, size)
+        
+        # If only Anthropic is available
+        elif self.anthropic_ai:
+            try:
+                result = self.anthropic_ai.create_dataset(description, format_type, size)
+                return {
+                    "status": "success",
+                    "format": format_type,
+                    "size": size,
+                    "dataset": result.get("dataset", "No dataset generated"),
+                    "provider": "anthropic"
+                }
+            except Exception as e:
+                logger.error(f"Anthropic dataset creation error: {e}")
+                logger.info("Falling back to basic dataset creation")
+                return self._generate_fallback_dataset(description, format_type, size)
+                
+        # This shouldn't be reachable given the first if statement, but added to satisfy type checker
+        return self._generate_fallback_dataset(description, format_type, size)
             
     def _generate_fallback_dataset(self, description: str, format_type: str = "json", size: int = 10) -> Dict[str, Any]:
         """
@@ -713,19 +855,55 @@ class AIEngine:
         Returns:
             Dictionary with generated code and explanation
         """
-        if not self.thor_ai:
+        # If no AI providers are available, use the built-in fallback
+        if not self.thor_ai and not self.anthropic_ai:
             return self._generate_fallback_network_scan(target_description)
         
-        try:
-            result = self.thor_ai.network_scan(target_description)
-            return {
-                "status": "success",
-                "result": result
-            }
-        except Exception as e:
-            logger.error(f"Network scan error: {e}")
-            logger.info("Falling back to basic network scan script")
-            return self._generate_fallback_network_scan(target_description)
+        # Try OpenAI first if available
+        if self.thor_ai:
+            try:
+                result = self.thor_ai.network_scan(target_description)
+                return {
+                    "status": "success",
+                    "result": result,
+                    "provider": "openai"
+                }
+            except Exception as e:
+                logger.error(f"OpenAI network scan error: {e}")
+                logger.info("Attempting to use Anthropic as fallback")
+                
+                # If Anthropic is available as fallback
+                if self.anthropic_ai:
+                    try:
+                        result = self.anthropic_ai.network_scan(target_description)
+                        return {
+                            "status": "success",
+                            "result": result,
+                            "provider": "anthropic"
+                        }
+                    except Exception as e2:
+                        logger.error(f"Anthropic fallback failed: {e2}")
+                
+                # If both fail or Anthropic isn't available, use built-in fallback
+                logger.info("Falling back to basic network scan script")
+                return self._generate_fallback_network_scan(target_description)
+        
+        # If only Anthropic is available
+        elif self.anthropic_ai:
+            try:
+                result = self.anthropic_ai.network_scan(target_description)
+                return {
+                    "status": "success",
+                    "result": result,
+                    "provider": "anthropic"
+                }
+            except Exception as e:
+                logger.error(f"Anthropic network scan error: {e}")
+                logger.info("Falling back to basic network scan script")
+                return self._generate_fallback_network_scan(target_description)
+                
+        # This shouldn't be reachable given the first if statement, but added to satisfy type checker
+        return self._generate_fallback_network_scan(target_description)
             
     def _generate_fallback_network_scan(self, target_description: str) -> Dict[str, Any]:
         """
@@ -1298,22 +1476,58 @@ if __name__ == "__main__":
         Returns:
             Dictionary with improvement suggestions
         """
-        if not self.thor_ai:
+        # If no AI providers are available, use the built-in fallback
+        if not self.thor_ai and not self.anthropic_ai:
             return self._generate_fallback_improvements()
         
-        try:
-            system_description = f"THOR AI System Version {self.model_info['version']}\n"
-            system_description += f"Capabilities: {', '.join(self.model_info['capabilities'])}\n"
-            
-            suggestions = self.thor_ai.suggest_improvements(system_description)
-            return {
-                "status": "success",
-                "suggestions": suggestions
-            }
-        except Exception as e:
-            logger.error(f"Improvement suggestion error: {e}")
-            logger.info("Falling back to basic improvement suggestions")
-            return self._generate_fallback_improvements()
+        system_description = f"THOR AI System Version {self.model_info['version']}\n"
+        system_description += f"Capabilities: {', '.join(self.model_info['capabilities'])}\n"
+        
+        # Try OpenAI first if available
+        if self.thor_ai:
+            try:
+                suggestions = self.thor_ai.suggest_improvements(system_description)
+                return {
+                    "status": "success",
+                    "suggestions": suggestions,
+                    "provider": "openai"
+                }
+            except Exception as e:
+                logger.error(f"OpenAI improvements suggestion error: {e}")
+                logger.info("Attempting to use Anthropic as fallback")
+                
+                # If Anthropic is available as fallback
+                if self.anthropic_ai:
+                    try:
+                        result = self.anthropic_ai.suggest_improvements()
+                        return {
+                            "status": "success",
+                            "suggestions": result.get("suggestions", "No suggestions provided"),
+                            "provider": "anthropic"
+                        }
+                    except Exception as e2:
+                        logger.error(f"Anthropic fallback failed: {e2}")
+                
+                # If both fail or Anthropic isn't available, use built-in fallback
+                logger.info("Falling back to basic improvement suggestions")
+                return self._generate_fallback_improvements()
+        
+        # If only Anthropic is available
+        elif self.anthropic_ai:
+            try:
+                result = self.anthropic_ai.suggest_improvements()
+                return {
+                    "status": "success",
+                    "suggestions": result.get("suggestions", "No suggestions provided"),
+                    "provider": "anthropic"
+                }
+            except Exception as e:
+                logger.error(f"Anthropic improvement suggestion error: {e}")
+                logger.info("Falling back to basic improvement suggestions")
+                return self._generate_fallback_improvements()
+                
+        # This shouldn't be reachable given the first if statement, but added to satisfy type checker
+        return self._generate_fallback_improvements()
             
     def _generate_fallback_improvements(self) -> Dict[str, Any]:
         """
