@@ -203,7 +203,18 @@ class AIEngine:
                         "status": "success"
                     }
                 except Exception as e:
-                    logger.error(f"Advanced response generation failed: {e}")
+                    logger.error(f"OpenAI response generation failed: {e}")
+                    # Fallback to Anthropic if OpenAI fails
+                    if self.anthropic_ai:
+                        try:
+                            response = self.anthropic_ai.generate_text(f"Context:\n{context}\n\nCurrent request:\n{prompt}")
+                            return {
+                                "text": response.get("text", ""),
+                                "model": "Anthropic Claude",
+                                "status": "success"
+                            }
+                        except Exception as e2:
+                            logger.error(f"Anthropic fallback failed: {e2}")
                     
             # Fallback to basic response
             response_text = self._generate_text_response(prompt, intent, conversation_history)
