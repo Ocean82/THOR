@@ -27,7 +27,12 @@ def login_test():
         form_type = request.form.get('form_type')
         
         if form_type == 'login' and login_form.validate_on_submit():
-            return redirect(url_for('auth.login'))
+            user = User.query.filter_by(username=login_form.username.data).first()
+            if user and check_password_hash(user.password_hash, login_form.password.data):
+                login_user(user)
+                flash('Logged in successfully!', 'success')
+                return redirect(url_for('index'))
+            flash('Invalid username or password', 'danger')
             
         elif form_type == 'register' and registration_form.validate_on_submit():
             return redirect(url_for('auth.register'))
