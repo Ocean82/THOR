@@ -147,24 +147,56 @@
                             </select>
                         </div>
                         
-                        <div class="mb-3" id="repo-url-container" style="display: none;">
-                            <label for="repo-url" class="form-label"><strong>Repository URL</strong></label>
-                            <input type="text" class="form-control" id="repo-url" placeholder="e.g., https://github.com/username/repository">
-                            <div class="form-text">Enter the GitHub repository URL</div>
+                        <!-- GitHub specific fields -->
+                        <div id="github-fields-container" style="display: none;">
+                            <div class="mb-3">
+                                <label for="repo-url" class="form-label"><strong>Repository URL</strong></label>
+                                <input type="text" class="form-control" id="repo-url" placeholder="e.g., https://github.com/username/repository">
+                                <div class="form-text">Enter the GitHub repository URL</div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="github-branch" class="form-label"><strong>Branch (Optional)</strong></label>
+                                <input type="text" class="form-control" id="github-branch" placeholder="e.g., main, master, develop">
+                                <div class="form-text">Enter the branch to clone (defaults to main)</div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="github-token" class="form-label"><strong>GitHub Token (Optional)</strong></label>
+                                <input type="password" class="form-control" id="github-token" placeholder="Personal access token for private repositories">
+                                <div class="form-text">Enter your GitHub token if accessing private repositories</div>
+                            </div>
+                        </div>
+                        
+                        <!-- HuggingFace specific fields -->
+                        <div id="huggingface-fields-container">
+                            <div class="mb-3">
+                                <label for="hf-token" class="form-label"><strong>HuggingFace Token (Optional)</strong></label>
+                                <input type="password" class="form-control" id="hf-token" placeholder="Personal access token for private models">
+                                <div class="form-text">Enter your HuggingFace token if accessing private models</div>
+                            </div>
                         </div>
                         
                         <div class="d-grid">
                             <button type="submit" class="btn btn-primary">Download Model</button>
                         </div>
                         
-                        <div id="download-status"></div>
+                        <div id="download-status" class="mt-3"></div>
                     </form>
                     
                     <script>
-                        // Show/hide repo URL field based on source selection
+                        // Show/hide source-specific fields
                         document.getElementById('model-source').addEventListener('change', function() {
-                            const repoUrlContainer = document.getElementById('repo-url-container');
-                            repoUrlContainer.style.display = this.value === 'github' ? 'block' : 'none';
+                            const githubFieldsContainer = document.getElementById('github-fields-container');
+                            const huggingfaceFieldsContainer = document.getElementById('huggingface-fields-container');
+                            
+                            if (this.value === 'github') {
+                                githubFieldsContainer.style.display = 'block';
+                                huggingfaceFieldsContainer.style.display = 'none';
+                            } else {
+                                githubFieldsContainer.style.display = 'none';
+                                huggingfaceFieldsContainer.style.display = 'block';
+                            }
                         });
                     </script>
                 </div>

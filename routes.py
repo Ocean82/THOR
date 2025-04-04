@@ -364,7 +364,20 @@ def register_routes(app):
         
         try:
             if source == 'huggingface':
-                model_path = model_integrator.get_model_path(model_name)
+                # Get the optional HuggingFace token if provided
+                hf_token = data.get('hf_token')
+                
+                # Download from HuggingFace using our new implementation
+                model_path = model_integrator.download_from_huggingface(
+                    model_id=model_name,
+                    model_name=None,  # Use default name based on model_id
+                    token=hf_token
+                )
+                
+                if not model_path:
+                    return jsonify({
+                        'error': 'Failed to download model from HuggingFace'
+                    }), 500
                 
                 # Record in database
                 model_cache = ModelCache(
@@ -377,7 +390,7 @@ def register_routes(app):
                 
                 return jsonify({
                     'success': True,
-                    'message': f'Model {model_name} downloaded successfully',
+                    'message': f'Model {model_name} downloaded successfully from HuggingFace',
                     'model_path': model_path
                 })
                 
@@ -386,7 +399,17 @@ def register_routes(app):
                 if not repo_url:
                     return jsonify({'error': 'Repository URL is required'}), 400
                 
-                model_path = model_integrator.download_from_github(repo_url, model_name)
+                # Get optional GitHub parameters
+                branch = data.get('branch', 'main')
+                github_token = data.get('github_token')
+                
+                # Download from GitHub using our new implementation
+                model_path = model_integrator.download_from_github(
+                    repo_url=repo_url, 
+                    model_name=model_name,
+                    branch=branch,
+                    token=github_token
+                )
                 
                 if model_path:
                     # Record in database

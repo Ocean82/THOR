@@ -57,7 +57,17 @@ document.addEventListener('DOMContentLoaded', function() {
     function downloadModel() {
         const modelName = document.getElementById('model-name').value;
         const modelSource = document.getElementById('model-source').value;
-        const repoUrl = document.getElementById('repo-url')?.value;
+        
+        // Get source-specific fields
+        let repoUrl, githubBranch, githubToken, hfToken;
+        
+        if (modelSource === 'github') {
+            repoUrl = document.getElementById('repo-url')?.value;
+            githubBranch = document.getElementById('github-branch')?.value;
+            githubToken = document.getElementById('github-token')?.value;
+        } else {
+            hfToken = document.getElementById('hf-token')?.value;
+        }
         
         // Validate inputs
         if (!modelName) {
@@ -82,8 +92,13 @@ document.addEventListener('DOMContentLoaded', function() {
             source: modelSource
         };
         
+        // Add source-specific parameters
         if (modelSource === 'github') {
             data.repo_url = repoUrl;
+            if (githubBranch) data.branch = githubBranch;
+            if (githubToken) data.github_token = githubToken;
+        } else if (modelSource === 'huggingface') {
+            if (hfToken) data.hf_token = hfToken;
         }
         
         // Send request to server
