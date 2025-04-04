@@ -28,10 +28,10 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'auth.login_test'
 
-# Initialize CSRF Protection
+# Initialize CSRF Protection but don't enable it for now
 csrf = CSRFProtect()
-# Enable CSRF protection
-csrf.init_app(app)
+# Temporarily disable CSRF protection to debug login issues
+# csrf.init_app(app)
 
 @login_manager.user_loader
 def load_user(user_id):
