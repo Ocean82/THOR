@@ -42,6 +42,24 @@ class AIEngine:
                 "The programming solution for this would be: ",
                 "Here's a code snippet that might help: "
             ],
+            "learning": [
+                "I'd be happy to help you learn about this. Let's start with the basics: ",
+                "As your learning assistant, I can explain that ",
+                "Here's a step-by-step approach to understanding this concept: ",
+                "This is a great topic to explore. The key points to understand are: "
+            ],
+            "growth": [
+                "For personal growth in this area, I recommend starting with: ",
+                "To develop this skill, here's what THOR suggests: ",
+                "I can help you improve in this area. First, consider: ",
+                "Personal development is a journey. Here's how you might approach this: "
+            ],
+            "testing": [
+                "Let's test this idea. We could approach it by: ",
+                "To validate this concept, THOR suggests: ",
+                "Here's a framework for testing your hypothesis: ",
+                "Experimentation is key to learning. You might try: "
+            ],
             "fallback": [
                 "As THOR, I'm still learning about that topic. Can you tell me more?",
                 "That's an interesting request. Let me think about how THOR can help with that.",
@@ -54,7 +72,15 @@ class AIEngine:
         self.model_info = {
             "name": "THOR AI Engine",
             "version": "1.0",
-            "capabilities": ["basic conversation", "permission requests", "safety filters", "code generation"]
+            "capabilities": [
+                "basic conversation", 
+                "permission requests", 
+                "safety filters", 
+                "code generation",
+                "personal growth assistance",
+                "learning support",
+                "testing concepts"
+            ]
         }
     
     def generate_response(self, 
@@ -140,6 +166,12 @@ class AIEngine:
             return "question"
         elif any(word in text_lower for word in ["code", "program", "function", "class", "python", "javascript"]):
             return "coding"
+        elif any(word in text_lower for word in ["learn", "study", "understand", "concept", "explain", "tutorial", "guide"]):
+            return "learning"
+        elif any(word in text_lower for word in ["personal", "growth", "improve", "better", "develop", "skill", "progress"]):
+            return "growth"
+        elif any(word in text_lower for word in ["test", "try", "experiment", "check", "validate", "verify", "simulation"]):
+            return "testing"
         else:
             return "general"
     
@@ -181,6 +213,20 @@ class AIEngine:
                 return f"{template}\n```javascript\n// Example JavaScript code\nfunction exampleFunction() {{\n    console.log('Hello, World!');\n    return true;\n}}\n\n// Call the function\nconst result = exampleFunction();\n```"
             else:
                 return f"{template}I'd need to know which programming language you're interested in. Could you specify?"
+        elif intent == "learning":
+            # Responses focused on education and learning concepts
+            topics = re.findall(r'\b\w{5,}\b', prompt.lower())
+            if topics:
+                main_topic = topics[0].capitalize()
+                return f"{template}{main_topic} is a fascinating subject to learn about. I recommend starting with understanding the core principles, then practicing with real examples, and finally teaching others to solidify your knowledge."
+            else:
+                return f"{template}Learning is most effective when you have a specific goal in mind. What particular topic or skill would you like to explore?"
+        elif intent == "growth":
+            # Responses focused on personal development
+            return f"{template}Setting clear goals, consistent practice, seeking feedback, and reflecting on your progress. Would you like me to elaborate on any of these aspects of personal growth?"
+        elif intent == "testing":
+            # Responses focused on experimentation and testing concepts
+            return f"{template}Start with a clear hypothesis, design a simple experiment, gather data, analyze results, and refine your approach based on what you learn. What concept would you like to test specifically?"
         else:
             # For general intents, create a response that references the user's input
             words = prompt.split()
