@@ -18,6 +18,16 @@ ai_engine = AIEngine()
 model_integrator = ModelIntegrator()
 
 def register_routes(app):
+    
+    @app.route('/test_openai')
+    def test_openai():
+        try:
+            # Attempt to use the OpenAI integration
+            result = ai_engine.generate_response("Hello, this is a test of the OpenAI API integration. Please respond with a confirmation.")
+            return jsonify({"status": "success", "message": "OpenAI API is working!", "response": result})
+        except Exception as e:
+            return jsonify({"status": "error", "message": f"OpenAI API error: {str(e)}"})
+            
     """Register all routes with the Flask app"""
     
     @app.route('/')
