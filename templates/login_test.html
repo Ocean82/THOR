@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Test</title>
+    <link href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Test Login</h3>
+                    </div>
+                    <div class="card-body">
+                        <form action="/login" method="post">
+                            <div class="mb-3">
+                                <label for="username" class="form-label">Username</label>
+                                <input type="text" class="form-control" id="username" name="username" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="password" class="form-label">Password</label>
+                                <input type="password" class="form-control" id="password" name="password" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Login</button>
+                        </form>
+                        
+                        <hr>
+                        
+                        <h4 class="mt-4">Register New User</h4>
+                        <form action="/register" method="post">
+                            <div class="mb-3">
+                                <label for="reg_username" class="form-label">Username</label>
+                                <input type="text" class="form-control" id="reg_username" name="username" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="reg_email" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="reg_email" name="email" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="reg_password" class="form-label">Password</label>
+                                <input type="password" class="form-control" id="reg_password" name="password" required>
+                            </div>
+                            <button type="submit" class="btn btn-success">Register</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
