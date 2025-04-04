@@ -5,25 +5,14 @@ import re
 import json
 from datetime import datetime
 from typing import Dict, List, Tuple, Optional, Any
-
-# Import the OpenAI-based ThorAI
-try:
-    from thor_ai import ThorAI
-    from thor_clone_manager import ThorCloneManager
-    HAS_THOR_AI = True
-except ImportError:
-    HAS_THOR_AI = False
-    
-# Import the Anthropic-based AnthropicAI
-try:
-    from anthropic_ai import AnthropicAI
-    HAS_ANTHROPIC_AI = True
-except ImportError:
-    HAS_ANTHROPIC_AI = False
+from model_integrator import ModelIntegrator
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
+
+# Initialize model integrator
+model_integrator = ModelIntegrator()
 
 class AIEngine:
     """
@@ -32,31 +21,22 @@ class AIEngine:
     """
     
     def __init__(self):
-        """Initialize the AI Engine with default settings"""
-        # Initialize ThorAI, AnthropicAI, and CloneManager if available
-        self.thor_ai = None
-        self.anthropic_ai = None
-        self.clone_manager = None
+        """Initialize the AI Engine with custom models"""
+        # Get available models
+        self.available_models = model_integrator.list_available_models()
+        self.current_model = None
         
-        # Try to initialize OpenAI integration
-        if HAS_THOR_AI and os.environ.get("OPENAI_API_KEY"):
-            try:
-                self.thor_ai = ThorAI()
-                self.clone_manager = ThorCloneManager()
-                logger.info("Advanced AI capabilities initialized with OpenAI integration")
-            except Exception as e:
-                logger.error(f"Failed to initialize OpenAI capabilities: {e}")
+        # Try to load the advanced model first
+        if any(model["id"] == "advanced_ai" for model in self.available_models):
+            self.current_model = model_integrator.get_model_info("advanced_ai")
+            logger.info("Initialized with advanced AI model")
+        # Fall back to simple model if advanced is not available
+        elif any(model["id"] == "simple_ai" for model in self.available_models):
+            self.current_model = model_integrator.get_model_info("simple_ai")
+            logger.info("Initialized with simple AI model")
         
-        # Try to initialize Anthropic integration (as a fallback or alternative)
-        if HAS_ANTHROPIC_AI and os.environ.get("ANTHROPIC_API_KEY"):
-            try:
-                self.anthropic_ai = AnthropicAI()
-                logger.info("Anthropic AI capabilities initialized successfully")
-                # Initialize clone manager if not already done with OpenAI
-                if not self.clone_manager and HAS_THOR_AI:
-                    self.clone_manager = ThorCloneManager()
-            except Exception as e:
-                logger.error(f"Failed to initialize Anthropic capabilities: {e}")
+        if not self.current_model:
+            logger.warning("No AI models available")
         
         # Basic conversation templates
         self.responses = {
