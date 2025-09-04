@@ -13,7 +13,7 @@ runButton = "Start App"
 [[workflows.workflow]]
 name = "Project"
 mode = "parallel"
-author = "agent"
+author = "Ocean"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
@@ -21,10 +21,10 @@ args = "Start application"
 
 [[workflows.workflow]]
 name = "Start application"
-author = "agent"
+author = "Ocean"
 
 [workflows.workflow.metadata]
-agentRequireRestartOnSave = false
+RequireRestartOnSave = false
 
 [[workflows.workflow.tasks]]
 task = "packager.installForAll"
